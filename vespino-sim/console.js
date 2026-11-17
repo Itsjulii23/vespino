@@ -6,6 +6,7 @@
 import {GROUPS, ORDER, PARTS} from './parts.js';
 import {HIST, HIST_SOURCES} from './history.js';
 import {MOTOR} from './motor.js';
+import {ASM, AVERIAS, COLORES, MODELOS} from './learn.js';
 import {D, E, RATIO_HIGH, RATIO_LOW} from './kin.js';
 
 export const C = {ink: '#15201a', mute: '#66726b', faint: '#cbd3ce', line: '#e4eae6', acc: '#2f9d4e', accDark: '#1f7a3a', accSoft: '#e6f4ea', blue: '#3d8fe0', grey: '#5d6670', orange: '#f05a23', exh: '#8b8f95'};
@@ -78,6 +79,13 @@ const CSS = `
 .pi:hover{background:#eef6f0}
 .pi.sel{background:${C.accSoft};font-weight:700;color:${C.accDark}}
 .pi span{overflow:hidden;text-overflow:ellipsis}
+.opt{display:block;margin:0 0 8px;padding:10px 12px;border-radius:11px;background:#eef2ef;font-size:13.5px;font-weight:600;cursor:pointer;pointer-events:auto;border:1.5px solid transparent;transition:background .15s}
+.opt:hover{background:${C.accSoft}}
+.opt.ok{background:#d9f2e0;border-color:${C.acc};color:${C.accDark}}
+.opt.bad{background:#fbe3df;border-color:#e0705f;color:#a3392a}
+.opt.go{background:linear-gradient(180deg,#3cae5c,${C.acc});color:#fff;text-align:center}
+.sw{position:absolute;width:28px;height:28px;border-radius:50%;cursor:pointer;pointer-events:auto;box-shadow:inset 0 -3px 5px rgba(0,0,0,.18),0 2px 5px rgba(20,44,30,.25);border:2px solid #fff;box-sizing:border-box}
+.sw.on{outline:2.5px solid ${C.acc};outline-offset:1px}
 .pi b{flex:none;min-width:66px;font-size:11.5px;color:${C.accDark}}
 .yr{margin:12px 0 0;font-size:46px;line-height:1;font-weight:700;color:${C.acc};letter-spacing:-1px}
 .fl{margin:0;padding:0;list-style:none}
@@ -127,20 +135,26 @@ export function createConsole(app) {
 
   // ------------------------------------------------------------ left: logo, tabs, the two tab bodies
   add(`<div class="pn" style="left:${LX}px;top:24px;width:280px;height:852px"></div>`);
-  add(`<div class="logo" style="left:${PX}px;top:40px"><i>Vespino</i><u>CICLOMOTOR · 2 TIEMPOS</u></div>`);
-  add(`<div class="seg" style="left:${PX}px;top:146px;width:${PW}px"></div>`);
-  const TABS = [['V', 'Vistas', 'v'], ['P', 'Piezas', 'p'], ['M', 'Motor', 'm'], ['H', 'Historia', 'h']];
-  const TW = (PW - 6) / 4;
+  add(`<div class="logo" style="left:${PX}px;top:40px;height:64px"><i style="font-size:36px">Vespino</i><u style="margin-top:2px">CICLOMOTOR · 2 TIEMPOS</u></div>`);
+  const TABS = [['V', 'Vistas', 'v'], ['P', 'Piezas', 'p'], ['M', 'Motor', 'm'], ['H', 'Historia', 'h'], ['A', 'Averías', 'a'], ['Q', 'Quiz', 'q'], ['X', 'Modelos', 'x']];
+  add(`<div class="seg" style="left:${PX}px;top:114px;width:${PW}px"></div>`);
+  add(`<div class="seg" style="left:${PX}px;top:154px;width:${PW}px"></div>`);
   TABS.forEach(([k, name], i) => {
-    btn['tab' + k] = add(`<div class="tb" style="left:${PX + 3 + i * TW}px;top:149px;width:${TW - 2}px;height:32px;border:0;font-size:12px;padding:0">${name}</div>`);
+    const row = i < 4 ? 0 : 1;
+    const n = row ? 3 : 4;
+    const w = (PW - 6) / n;
+    const col = row ? i - 4 : i;
+    btn['tab' + k] = add(`<div class="tb" style="left:${PX + 3 + col * w}px;top:${117 + row * 40}px;width:${w - 2}px;height:32px;border:0;font-size:12px;padding:0">${name}</div>`);
   });
   const tv = wrap(ui);
   const tp = wrap(ui);
   tp.style.display = 'none';
   const tm = wrap(ui);
   const th = wrap(ui);
-  tm.style.display = 'none';
-  th.style.display = 'none';
+  const ta = wrap(ui);
+  const tq = wrap(ui);
+  const tx = wrap(ui);
+  for (const w of [tm, th, ta, tq, tx]) w.style.display = 'none';
   const addV = (h) => mk(tv, h);
   const addP = (h) => mk(tp, h);
 
@@ -157,6 +171,8 @@ export function createConsole(app) {
   let y = grid('Vista', CAMS, 200, 2);
   y = grid('Corte', CUTS, y + 4, 3, 32, 6);
   y = grid('Mostrar', OVERLAYS, y + 4, 2);
+  btn.drive = addV(`<div class="tb" style="left:${PX}px;top:${y + 2}px;width:${(PW - 7) / 2}px;height:32px">Conducción</div>`);
+  btn.sound = addV(`<div class="tb" style="left:${PX + (PW + 7) / 2}px;top:${y + 2}px;width:${(PW - 7) / 2}px;height:32px">Sonido</div>`);
 
   // sliders: throttle and playback live under both tabs; take-apart lives in the parts tab
   const SL = {x: PX + 6, w: PW - 12};
@@ -211,6 +227,49 @@ export function createConsole(app) {
     });
   };
   buildH();
+  // averías: what can go wrong
+  mk(ta, `<div class="eb" style="left:${PX}px;top:200px">¿Qué le pasa a la moto?</div>`);
+  const alist = mk(ta, `<div class="plist" style="left:${PX - 6}px;top:224px;width:${PW + 12}px;height:340px"></div>`);
+  const aItems = AVERIAS.map((m, i) => {
+    const it = el(`<div class="pi" style="height:34px"><b style="min-width:18px">${i + 1}</b><span>${m.t}</span></div>`);
+    it.addEventListener('click', () => pickEx('a', i));
+    alist.appendChild(it);
+    return it;
+  });
+  // modelos: colour, accessories and the real models
+  mk(tx, `<div class="eb" style="left:${PX}px;top:200px">Color de la carrocería</div>`);
+  const swGap = (PW - 28) / (COLORES.length - 1);
+  const swatches = COLORES.map(([name, hex], i) => {
+    const s = mk(tx, `<div class="sw${i === 0 ? ' on' : ''}" title="${name}" style="left:${PX + i * swGap}px;top:224px;background:${hex}"></div>`);
+    s.addEventListener('click', () => {
+      swatches.forEach((o) => o.classList.toggle('on', o === s));
+      if (api.onPaint) api.onPaint(hex);
+    });
+    return s;
+  });
+  mk(tx, `<div class="eb" style="left:${PX}px;top:268px">Accesorios</div>`);
+  const accs = [['portabultos', 'Portabultos'], ['espejos', 'Espejos']];
+  accs.forEach(([id, name], i) => {
+    const b = mk(tx, `<div class="tb on" style="left:${PX + i * ((PW + 7) / 2)}px;top:292px;width:${(PW - 7) / 2}px;height:30px">${name}</div>`);
+    b.addEventListener('click', () => {
+      const on = !b.classList.contains('on');
+      b.classList.toggle('on', on);
+      if (api.onAccessory) api.onAccessory(id, on);
+    });
+  });
+  mk(tx, `<div class="eb" style="left:${PX}px;top:338px">Modelos reales · ${MODELOS.length}</div>`);
+  const xlist = mk(tx, `<div class="plist" style="left:${PX - 6}px;top:360px;width:${PW + 12}px;height:204px"></div>`);
+  const xItems = MODELOS.map((m, i) => {
+    const it = el(`<div class="pi" style="height:32px"><b>${m.y.slice(0, 4)}</b><span>${m.t}</span></div>`);
+    it.addEventListener('click', () => pickEx('x', i));
+    xlist.appendChild(it);
+    return it;
+  });
+  // quiz: guess the part, or put the bike back together
+  mk(tq, `<div class="eb" style="left:${PX}px;top:200px">Juega con la moto</div>`);
+  btn.qGuess = mk(tq, `<div class="tb on" style="left:${PX}px;top:224px;width:${PW}px;height:38px;font-size:14px">Adivina la pieza</div>`);
+  btn.qAsm = mk(tq, `<div class="tb" style="left:${PX}px;top:270px;width:${PW}px;height:38px;font-size:14px">Monta la moto</div>`);
+  mk(tq, `<div class="tx" style="left:${PX}px;top:326px;width:${PW}px;font-size:12.5px;color:${C.mute};line-height:1.5"><b>Adivina la pieza:</b> te señalo una pieza en verde y eliges su nombre entre cuatro.<br><br><b>Monta la moto:</b> la moto empieza desmontada y tienes que ir colocando las piezas en el orden correcto, pulsándolas en la escena.</div>`);
   add(`<div class="dv" style="left:${PX}px;top:574px;width:${PW}px"></div>`);
   const sThr = slider('Acelerador', 588, add);
   const sPlay = slider('Reproducción', 650, add);
@@ -285,31 +344,134 @@ export function createConsole(app) {
   const ec = mk(ew, `<div class="pc" style="position:absolute;left:${IX}px;top:44px;width:${IW}px;height:770px;overflow:hidden;pointer-events:none"></div>`);
   btn.prev = mk(ew, `<div class="tb" style="left:${IX}px;top:830px;width:${(IW - 7) / 2}px;height:32px">◀ Anterior</div>`);
   btn.next = mk(ew, `<div class="tb on" style="left:${IX + (IW + 7) / 2}px;top:830px;width:${(IW - 7) / 2}px;height:32px">Siguiente ▶</div>`);
-  const exIdx = {m: 0, h: 0};
+  const exIdx = {m: 0, h: 0, a: 0, x: 0};
+  const KINDS = {
+    m: {list: () => MOTOR, items: () => mItems, head: (m, i, n) => `<span class="tag">Motor · ${i + 1} de ${n}</span>`},
+    h: {list: () => HIST[hSet], items: () => hItems, head: (m) => `<span class="tag">${hSet === 'vespino' ? 'Historia del Vespino' : 'La marca'}</span><div class="yr">${m.y}</div>`},
+    a: {list: () => AVERIAS, items: () => aItems, head: (m, i, n) => `<span class="tag">Avería · ${i + 1} de ${n}</span>`},
+    x: {list: () => MODELOS, items: () => xItems, head: (m) => `<span class="tag">Modelo</span><div class="yr" style="font-size:34px">${m.y}</div>`},
+  };
+  // quiz state
+  const qz = {mode: null, id: null, opts: [], ans: null, score: 0, n: 0, i: 0, wrong: 0, hint: false, msg: ''};
+  const shuffle = (a) => {
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
+  const renderQuiz = () => {
+    let h;
+    if (!qz.mode) h = `<span class="tag">Quiz</span><h2>Elige un juego</h2><p style="margin-top:12px">Adivina el nombre de las piezas o monta la moto desde cero. Se aprende tocando.</p>`;
+    else if (qz.mode === 'guess') {
+      const p = PARTS[qz.id];
+      h = `<span class="tag">Quiz · pregunta ${qz.n} · ${qz.score} aciertos</span><h2>¿Qué pieza es?</h2><p class="sub">Mírala resaltada en verde en la moto</p><div style="margin-top:16px">${qz.opts
+        .map((o, i) => `<div class="opt${qz.ans === null ? '' : o === qz.id ? ' ok' : qz.ans === i ? ' bad' : ''}" data-opt="${i}">${PARTS[o].n}</div>`)
+        .join('')}</div>${qz.ans !== null ? `<h4>${qz.opts[qz.ans] === qz.id ? '¡Correcto!' : 'Era:'} ${p.n}</h4><p>${p.w}</p><div class="opt go" data-next style="margin-top:14px">Siguiente ▶</div>` : ''}`;
+    } else if (qz.i >= ASM.length) h = `<span class="tag">Montaje</span><h2>¡Moto montada!</h2><p style="margin-top:12px">Has colocado las ${ASM.length} piezas con ${qz.wrong} fallos.</p><div class="opt go" data-again style="margin-top:18px">Volver a jugar</div>`;
+    else {
+      const p = PARTS[ASM[qz.i]];
+      h = `<span class="tag">Montaje · paso ${qz.i + 1} de ${ASM.length}</span><h2>Coloca: ${p.n}</h2><p class="sub">${p.s}</p><p style="margin-top:12px">Haz clic en esa pieza dentro de la escena: está flotando fuera de la moto.</p>${qz.msg ? `<p style="margin-top:12px;color:#a3392a;font-weight:600">${qz.msg}</p>` : ''}<div style="margin-top:16px"><div class="opt" data-hint>${qz.hint ? 'Pista activada: mírala en verde' : 'Ver pista'}</div><div class="opt" data-auto>Colocarla por mí</div></div>`;
+    }
+    ec.innerHTML = h;
+  };
+  const nextGuess = () => {
+    qz.id = ORDER[Math.floor(Math.random() * ORDER.length)];
+    const same = ORDER.filter((k) => k !== qz.id && PARTS[k].g === PARTS[qz.id].g);
+    const pool = shuffle(same).slice(0, 3);
+    while (pool.length < 3) {
+      const o = ORDER[Math.floor(Math.random() * ORDER.length)];
+      if (o !== qz.id && !pool.includes(o)) pool.push(o);
+    }
+    qz.opts = shuffle([qz.id, ...pool]);
+    qz.ans = null;
+    qz.n++;
+    if (api.onQuiz) api.onQuiz(qz.id);
+    renderQuiz();
+  };
+  const endQuiz = () => {
+    if (qz.mode === 'asm' && api.onAsm) api.onAsm('end');
+    qz.mode = null;
+    if (api.onQuiz) api.onQuiz(null);
+  };
+  const startGuess = () => {
+    endQuiz();
+    Object.assign(qz, {mode: 'guess', score: 0, n: 0});
+    btn.qGuess.classList.add('on');
+    btn.qAsm.classList.remove('on');
+    nextGuess();
+  };
+  const startAsm = () => {
+    endQuiz();
+    Object.assign(qz, {mode: 'asm', i: 0, wrong: 0, hint: false, msg: ''});
+    btn.qGuess.classList.remove('on');
+    btn.qAsm.classList.add('on');
+    if (api.onAsm) api.onAsm('start');
+    if (api.onQuiz) api.onQuiz(null);
+    renderQuiz();
+  };
+  const place = (id) => {
+    if (api.onAsm) api.onAsm('place', id);
+    qz.i++;
+    qz.hint = false;
+    qz.msg = '';
+    if (api.onQuiz) api.onQuiz(null);
+    renderQuiz();
+  };
+  api.asmPick = (id) => {
+    if (qz.mode !== 'asm' || qz.i >= ASM.length) return false;
+    if (id === ASM[qz.i]) place(id);
+    else {
+      qz.wrong++;
+      qz.msg = `Esa es ${PARTS[id].n}. Busca: ${PARTS[ASM[qz.i]].n}.`;
+      renderQuiz();
+    }
+    return true;
+  };
+  btn.qGuess.addEventListener('click', startGuess);
+  btn.qAsm.addEventListener('click', startAsm);
+  ec.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-opt],[data-next],[data-again],[data-hint],[data-auto]');
+    if (!t) return;
+    if (t.dataset.opt !== undefined && qz.ans === null) {
+      qz.ans = Number(t.dataset.opt);
+      if (qz.opts[qz.ans] === qz.id) qz.score++;
+      renderQuiz();
+    } else if (t.dataset.next !== undefined) nextGuess();
+    else if (t.dataset.again !== undefined) startAsm();
+    else if (t.dataset.hint !== undefined) {
+      qz.hint = true;
+      if (api.onQuiz) api.onQuiz(ASM[qz.i], false);
+      renderQuiz();
+    } else if (t.dataset.auto !== undefined) place(ASM[qz.i]);
+  });
   const renderEx = () => {
     const k = tab;
-    if (k !== 'm' && k !== 'h') return;
-    const list = k === 'm' ? MOTOR : HIST[hSet];
+    btn.prev.style.display = btn.next.style.display = k === 'q' ? 'none' : '';
+    if (k === 'q') return renderQuiz();
+    const K = KINDS[k];
+    if (!K) return;
+    const list = K.list();
     const m = list[exIdx[k]];
-    const items = k === 'm' ? mItems : hItems;
+    const items = K.items();
     items.forEach((it, i) => it.classList.toggle('sel', i === exIdx[k]));
-    const head = k === 'm' ? `<span class="tag">Motor · ${exIdx[k] + 1} de ${list.length}</span>` : `<span class="tag">${hSet === 'vespino' ? 'Historia del Vespino' : 'La marca'}</span><div class="yr">${m.y}</div>`;
-    ec.innerHTML = `${head}<h2>${m.t}</h2>${m.s ? `<p class="sub">${m.s}</p>` : ''}<p style="margin-top:12px">${m.p}</p><h4>Datos</h4><ul class="fl">${m.f.map((f) => `<li>${f}</li>`).join('')}</ul>${k === 'h' ? `<p class="src" style="margin-top:22px">${HIST_SOURCES}</p>` : ''}`;
+    const body = m.secs ? m.secs.map(([a, b]) => `<h4>${a}</h4><p>${b}</p>`).join('') + `<p class="src" style="margin-top:18px">Orientativo: ante la duda, llévala a un taller.</p>` : `<p style="margin-top:12px">${m.p}</p><h4>Datos</h4><ul class="fl">${m.f.map((f) => `<li>${f}</li>`).join('')}</ul>`;
+    ec.innerHTML = `${K.head(m, exIdx[k], list.length)}<h2>${m.t}</h2>${m.s ? `<p class="sub">${m.s}</p>` : ''}${body}${k === 'h' ? `<p class="src" style="margin-top:22px">${HIST_SOURCES}</p>` : ''}${k === 'x' ? `<p class="src" style="margin-top:22px">Datos de la Wikipedia (Motovespa Vespino). Los colores son solo para probar.</p>` : ''}`;
     btn.prev.style.opacity = exIdx[k] > 0 ? '1' : '.4';
     btn.next.style.opacity = exIdx[k] < list.length - 1 ? '1' : '.4';
-    items[exIdx[k]].scrollIntoView({block: 'nearest'});
+    if (items[exIdx[k]]) items[exIdx[k]].scrollIntoView({block: 'nearest'});
   };
   const pickEx = (k, i) => {
     exIdx[k] = i;
     renderEx();
-    if (api.onTopic) api.onTopic(k, k === 'm' ? MOTOR[i] : HIST[hSet][i]);
+    if (api.onTopic) api.onTopic(k, KINDS[k].list()[i]);
   };
   const stepEx = (d) => {
-    const k = tab;
-    if (k !== 'm' && k !== 'h') return;
-    const n = (k === 'm' ? MOTOR : HIST[hSet]).length;
-    const i = Math.max(0, Math.min(n - 1, exIdx[k] + d));
-    if (i !== exIdx[k]) pickEx(k, i);
+    const K = KINDS[tab];
+    if (!K) return;
+    const n = K.list().length;
+    const i = Math.max(0, Math.min(n - 1, exIdx[tab] + d));
+    if (i !== exIdx[tab]) pickEx(tab, i);
   };
   btn.prev.addEventListener('click', () => stepEx(-1));
   btn.next.addEventListener('click', () => stepEx(1));
@@ -354,11 +516,15 @@ export function createConsole(app) {
 
   let tab = 'v';
   const setTab = (t) => {
+    if (tab === 'q' && t !== 'q') endQuiz();
     tab = t;
     tv.style.display = t === 'v' ? '' : 'none';
     tp.style.display = t === 'p' ? '' : 'none';
     tm.style.display = t === 'm' ? '' : 'none';
     th.style.display = t === 'h' ? '' : 'none';
+    ta.style.display = t === 'a' ? '' : 'none';
+    tq.style.display = t === 'q' ? '' : 'none';
+    tx.style.display = t === 'x' ? '' : 'none';
     renderEx();
     for (const [b, yes] of TABS.map(([k, , id]) => [btn['tab' + k], t === id])) {
       b.style.background = yes ? '#fff' : 'transparent';
@@ -375,6 +541,7 @@ export function createConsole(app) {
     });
   let shownSel = null;
 
+  Object.defineProperty(api, 'tab', {get: () => tab});
   return Object.assign(api, {
     spots,
     refreshSpots,
@@ -383,9 +550,6 @@ export function createConsole(app) {
     explodeKnob: (v) => [knobX(v), sExp.y],
     tabParts: tp,
     setTab,
-    get tab() {
-      return tab;
-    },
     listBtn,
     btn,
     root: ui,
@@ -421,6 +585,8 @@ export function createConsole(app) {
       for (const k of CAMS) btn[k].classList.toggle('on', s.cam === k && !s.sel);
       for (const k of CUTS) btn[k].classList.toggle('on', s.cut === k);
       for (const k of OVERLAYS) btn[k].classList.toggle('on', !!s.overlays[k]);
+      btn.drive.classList.toggle('on', !!s.drive);
+      btn.sound.classList.toggle('on', !!s.sound);
       for (const id of ORDER) {
         const it = listBtn[id];
         it.classList.toggle('sel', s.sel === id);
@@ -429,7 +595,7 @@ export function createConsole(app) {
       hint.style.display = s.sel ? 'none' : '';
 
       // right column: either the cards or the part card
-      const ex = !s.sel && (tab === 'm' || tab === 'h');
+      const ex = !s.sel && tab !== 'v' && tab !== 'p';
       std.style.display = s.sel || ex ? 'none' : '';
       pcw.style.display = s.sel ? '' : 'none';
       ew.style.display = ex ? '' : 'none';

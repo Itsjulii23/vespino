@@ -25,11 +25,12 @@ const playText = (p) => (p >= 1 ? 'Normal' : `1/${Math.round(1 / p)} (lento)`);
 export const VIEW_FN = {
   hero: (u) => ({tx: 0.56, ty: 0.5, tz: 0, az: 38 + 3 * u, el: 14, d: 3.55, sx: -20, sy: 0}),
   side: (u) => ({tx: 0.56, ty: 0.5, tz: 0, az: 2 + 2 * u, el: 4, d: 3.4, sx: -20, sy: 0}),
-  engine: (u) => ({tx: 0.56, ty: 0.3, tz: 0, az: 30 + 4 * u, el: 14, d: 1.45, sx: -30, sy: 10}),
+  engine: (u) => ({tx: 0.56, ty: 0.3, tz: 0, az: 30 + 4 * u, el: 14, d: 1.2, sx: -30, sy: 10}),
   drive: (u) => ({tx: 0.27, ty: 0.25, tz: 0, az: 12 - 3 * u, el: 7, d: 2.0, sx: -30, sy: 20}),
   cockpit: (u) => ({tx: 1.0, ty: 0.9, tz: 0, az: -70 + 4 * u, el: 36, d: 1.75, sx: -20, sy: 0}),
   front: (u) => ({tx: 0.9, ty: 0.55, tz: 0, az: 72 - 4 * u, el: 10, d: 3.1, sx: -20, sy: 0}),
 };
+const WHEELS = ['rueda-t-neumatico', 'rueda-t-llanta', 'rueda-t-tambor', 'rueda-d-neumatico', 'rueda-d-llanta', 'rueda-d-tambor'];
 const KEYS = {1: 'hero', 2: 'side', 3: 'engine', 4: 'drive', 5: 'cockpit', 6: 'front'};
 
 // the tour: one action per beat
@@ -229,6 +230,19 @@ export function runLive() {
   const outT = Object.fromEntries(ORDER.map((k) => [k, 0]));
   let hlKey = '';
   let uiTick = 0;
+  let focus = null; // a part the quiz or a fault points at
+  let focusCam = true; // whether the camera flies to it
+  let hlList = null; // a list of parts a fault points at
+  let loopRange = null; // the crank angles an engine topic repeats
+  let asmOn = false; // the assembly game
+  let driveOn = false;
+  let driveT0 = 0;
+  let soundOn = false;
+  const setHash = (s) => {
+    try {
+      history.replaceState(null, '', s ? '#' + s : location.pathname + location.search);
+    } catch (e) {}
+  };
   const pulse = (x, y) => (ring = {t: T, x, y});
   const pulseBtn = (k) => pulse(...ui.spots[k]);
 
@@ -245,6 +259,11 @@ export function runLive() {
     Object.assign(ov, {callouts: 1, charge: 1, charts: 1, isolate: 0});
     Object.assign(off, {az: 0, el: 0, k: 1});
     sel = null;
+    focus = null;
+    hlList = null;
+    loopRange = null;
+    driveOn = false;
+    asmOn = false;
     expT = 0;
     for (const k of ORDER) outT[k] = 0;
     ui.setTab('v');
@@ -340,30 +359,74 @@ export function runLive() {
     sel = id;
     Object.assign(off, {az: 0, el: 0, k: 1});
     ui.listBtn[id].scrollIntoView({block: 'nearest'});
+    setHash('pieza=' + id);
   };
   const deselect = () => {
     sel = null;
     Object.assign(off, {az: 0, el: 0, k: 1});
     viewAt = T;
+    setHash(ui.tab === 'v' || ui.tab === 'p' ? '' : 'tab=' + ui.tab);
   };
   ui.onPart = (id) => select(id);
   // the engine tab shows the motor alone through glass; the history tab shows the whole bike
   ui.onTab = (t, was) => {
     takeOver();
+    loopRange = null;
+    hlList = null;
+    focus = null;
+    driveOn = false;
+    // the wheels are hidden in the engine lesson so they do not block the view
+    for (const id of WHEELS) st.bike.setPartVisible(id, t !== 'm');
+    if (was === 'm' || was === 'a') {
+      cut = 'solid';
+      ov.isolate = 0;
+    }
     if (t === 'm') {
       setView('engine');
       cut = 'glass';
       ov.isolate = 1;
-    } else if (was === 'm') {
-      cut = 'solid';
-      ov.isolate = 0;
-      setView(t === 'h' ? 'hero' : view);
-    } else if (t === 'h') setView('hero');
+    } else if (t === 'h' || t === 'q') setView('hero');
+    else if (t === 'a' || t === 'x') setView('side');
+    else if (was === 'm' || was === 'a') setView(view);
+    setHash(t === 'v' || t === 'p' ? '' : 'tab=' + t);
   };
   ui.onTopic = (k, m) => {
     takeOver();
-    if (k === 'm' && m.view) setView(m.view);
+    if (k === 'm') {
+      if (m.view) setView(m.view);
+      if (m.th) {
+        loopRange = m.th;
+        th = m.th[0];
+        paused = false;
+        playI = 2;
+      } else loopRange = null;
+    } else if (k === 'a') {
+      setView(m.view);
+      hlList = m.parts;
+      cut = m.inside ? 'glass' : 'solid';
+    }
   };
+  ui.onQuiz = (id, cam = true) => {
+    focus = id;
+    focusCam = cam;
+    if (id && cam) Object.assign(off, {az: 0, el: 0, k: 1});
+  };
+  ui.onAsm = (a, id) => {
+    takeOver();
+    if (a === 'start') {
+      asmOn = true;
+      expT = 0;
+      for (const k of ORDER) outT[k] = 1;
+      Object.assign(off, {az: 0, el: 0, k: 1.8});
+    } else if (a === 'place') outT[id] = 0;
+    else if (a === 'end') {
+      asmOn = false;
+      for (const k of ORDER) outT[k] = 0;
+      Object.assign(off, {az: 0, el: 0, k: 1});
+    }
+  };
+  ui.onPaint = (hex) => st.bike.setPaint(hex);
+  ui.onAccessory = (id, on) => st.bike.setPartVisible(id, on);
   ui.onHover = (id) => (hoverList = id);
   ui.btn.rm.addEventListener('click', () => {
     takeOver();
@@ -388,9 +451,10 @@ export function runLive() {
   };
   // the camera that frames the selected part, wherever it is now
   const partTarget = () => {
-    const b = st.bike.partBox(sel);
+    const fid = sel || focus;
+    const b = st.bike.partBox(fid);
     if (b.isEmpty()) return VIEW_FN[view](0);
-    const hint = PARTS[sel].cam || {az: 25, el: 14};
+    const hint = PARTS[fid].cam || {az: 25, el: 14};
     const size = Math.max(b.max.x - b.min.x, b.max.y - b.min.y, b.max.z - b.min.z);
     return {tx: (b.min.x + b.max.x) / 2, ty: (b.min.y + b.max.y) / 2, tz: (b.min.z + b.max.z) / 2, az: hint.az, el: hint.el, d: clamp(size * 2.4 + 0.4, 0.55, 2.6), sx: 0, sy: 0};
   };
@@ -436,6 +500,8 @@ export function runLive() {
     canvas.classList.remove('drag');
     if (click) {
       const id = pickAt(e.clientX, e.clientY);
+      if (id && ui.asmPick && ui.asmPick(id)) return;
+      if (asmOn) return;
       if (id) select(id);
       else if (sel) deselect();
     }
@@ -450,7 +516,7 @@ export function runLive() {
   });
   canvas.addEventListener('dblclick', (e) => {
     const id = pickAt(e.clientX, e.clientY);
-    if (id) {
+    if (id && !asmOn && ui.tab !== 'q') {
       select(id);
       outT[id] = outT[id] > 0.5 ? 0 : 1;
     }
@@ -465,8 +531,112 @@ export function runLive() {
     {passive: false},
   );
 
+  // ------------------------------------------------------------ drive mode, sound, links, small screens
+  const driveChip = document.createElement('div');
+  driveChip.className = 'hint';
+  driveChip.style.top = '104px';
+  driveChip.innerHTML = '<span></span>';
+  driveChip.style.display = 'none';
+  ui.centre.appendChild(driveChip);
+  ui.btn.drive.addEventListener('click', () => {
+    takeOver();
+    pulseBtn('drive');
+    driveOn = !driveOn;
+    if (driveOn) {
+      driveT0 = T;
+      paused = false;
+      playI = Math.max(playI, 5);
+      setView('side');
+    }
+  });
+  let au = null;
+  const audioStart = () => {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const master = ctx.createGain();
+    master.gain.value = 0;
+    master.connect(ctx.destination);
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.connect(master);
+    const osc = (type, g) => {
+      const o = ctx.createOscillator();
+      o.type = type;
+      const gg = ctx.createGain();
+      gg.gain.value = g;
+      o.connect(gg);
+      gg.connect(lp);
+      o.start();
+      return o;
+    };
+    const o1 = osc('sawtooth', 0.5);
+    const o2 = osc('square', 0.3);
+    const o3 = osc('sawtooth', 0.18);
+    const buf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    const nz = ctx.createBufferSource();
+    nz.buffer = buf;
+    nz.loop = true;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.Q.value = 0.7;
+    const gn = ctx.createGain();
+    gn.gain.value = 0.3;
+    nz.connect(bp);
+    bp.connect(gn);
+    gn.connect(lp);
+    nz.start();
+    au = {ctx, master, lp, o1, o2, o3, bp};
+  };
+  const audioUpdate = (rpmNow, active) => {
+    if (!au) return;
+    const t = au.ctx.currentTime;
+    const f = Math.max(25, rpmNow / 60);
+    au.o1.frequency.setTargetAtTime(f, t, 0.05);
+    au.o2.frequency.setTargetAtTime(f * 2, t, 0.05);
+    au.o3.frequency.setTargetAtTime(f * 4, t, 0.05);
+    au.lp.frequency.setTargetAtTime(500 + rpmNow * 0.35, t, 0.1);
+    au.bp.frequency.setTargetAtTime(400 + rpmNow * 0.2, t, 0.1);
+    au.master.gain.setTargetAtTime(active ? 0.05 + 0.1 * clamp((rpmNow - 1500) / 5500, 0, 1) : 0, t, 0.08);
+  };
+  ui.btn.sound.addEventListener('click', () => {
+    takeOver();
+    pulseBtn('sound');
+    soundOn = !soundOn;
+    if (soundOn && !au) audioStart();
+    if (au) au.ctx.resume();
+  });
+  if (innerWidth < 900) {
+    hidden = true;
+    const mb = document.createElement('div');
+    mb.textContent = '☰ Menú';
+    mb.style.cssText = "position:fixed;left:10px;top:10px;z-index:30;padding:9px 14px;border-radius:999px;background:#fff;box-shadow:0 3px 12px rgba(20,44,30,.3);font:700 14px 'Segoe UI',system-ui,sans-serif;color:#15201a";
+    mb.addEventListener('click', () => {
+      hidden = !hidden;
+      takeOver();
+    });
+    document.body.appendChild(mb);
+  }
+
   // ------------------------------------------------------------ the frame
   startTour();
+  {
+    // a link can open a tab or a part: #tab=motor-style ids or #pieza=carter
+    const h = new URLSearchParams(location.hash.slice(1));
+    const tb = h.get('tab');
+    const pz = h.get('pieza');
+    if (pz && PARTS[pz]) {
+      takeOver();
+      ui.setTab('p');
+      select(pz);
+    } else if (tb && 'vpmhaqx'.includes(tb) && tb.length === 1) {
+      takeOver();
+      ui.setTab(tb);
+      ui.onTab(tb, 'v');
+    }
+  }
   let lastT = performance.now();
   const perf = {n: 0, sum: 0, slow: 0, age: 0};
   const frame = (now) => {
@@ -516,7 +686,7 @@ export function runLive() {
     } else {
       if (T - lastInput > IDLE) startTour();
       since = T - viewAt;
-      tgt = sel ? partTarget() : VIEW_FN[view](since);
+      tgt = sel || (focus && focusCam) ? partTarget() : VIEW_FN[view](since);
       tgt.az += off.az;
       tgt.el = clamp(tgt.el + off.el, -10, 80);
       tgt.d *= off.k;
@@ -525,7 +695,21 @@ export function runLive() {
     }
     rpm += (rpmTarget - rpm) * (1 - Math.exp(-dt / 0.35));
     const play = PLAYS[playI];
+    if (driveOn && !AP.on) {
+      lastInput = T;
+      const c = (T - driveT0) % 40;
+      rpmTarget = c < 4 ? 1800 : c < 12 ? 1800 + ((c - 4) / 8) * 4000 : c < 22 ? 5800 : c < 26 ? 4200 : c < 32 ? 4200 - ((c - 26) / 6) * 2200 : 1800;
+      const msg = c < 4 ? 'Ralentí: el embrague está abierto y la moto no avanza' : c < 12 ? 'Acelerando: el variador cierra la polea y sube de marcha' : c < 22 ? 'Crucero: marcha larga, el motor va desahogado' : c < 26 ? 'Cuesta: el variador baja de marcha para dar más fuerza' : c < 32 ? 'Frenando: el motor baja de vueltas' : 'Parada: vuelta al ralentí';
+      if (driveChip.firstChild.textContent !== msg) driveChip.firstChild.textContent = msg;
+    }
+    driveChip.style.display = driveOn && !AP.on ? '' : 'none';
     if (!paused) th += (rpm / 60) * 360 * dt * play;
+    if (loopRange && !paused) {
+      const [a0, a1] = loopRange;
+      const len = a1 - a0;
+      th -= len * Math.floor((th - a0) / len);
+    }
+    audioUpdate(rpm, soundOn && !paused && play >= 0.5);
 
     const k = 1 - Math.exp(-dt / (AP.on ? 0.22 : 0.45));
     cam.az += wrap(tgt.az - cam.az) * k;
@@ -535,19 +719,21 @@ export function runLive() {
       ptr.dirty = false;
       hoverId = pickAt(ptr.x, ptr.y);
       const [sx, sy] = toStage(ptr.x, ptr.y);
-      ui.setTip(hoverId ? PARTS[hoverId].n : null, sx, sy);
+      ui.setTip(hoverId && ui.tab !== 'q' ? PARTS[hoverId].n : null, sx, sy);
       canvas.style.cursor = hoverId ? 'pointer' : '';
     }
-    const hv = hoverList || hoverId;
-    const key = `${hv}|${sel}`;
+    const hv = hlList || (ui.tab === 'q' && !asmOn ? null : hoverList || hoverId);
+    const fs = sel || focus;
+    const key = `${hv}|${fs}`;
     if (key !== hlKey) {
       hlKey = key;
-      st.bike.setHighlight(hv, sel);
+      st.bike.setHighlight(hv, fs);
     }
     const kk = 1 - Math.exp(-dt / 0.2);
     expK += (expT - expK) * kk;
     for (const id of ORDER) out[id] += (outT[id] - out[id]) * kk;
-    const inside = sel && (PARTS[sel].g === 'motor' || PARTS[sel].g === 'transmision') && sel !== 'cubierta-correa' && sel !== 'tapa-volante';
+    const fsel = sel || focus;
+    const inside = fsel && (PARTS[fsel].g === 'motor' || PARTS[fsel].g === 'transmision') && fsel !== 'cubierta-correa' && fsel !== 'tapa-volante';
     st.setCut(inside && cut === 'solid' ? 'glass' : cut);
     st.bike.setIsolate(!!ov.isolate);
     st.bike.setCharge(!!ov.charge);
@@ -558,7 +744,7 @@ export function runLive() {
     st.frame({...cam, az: cam.az * D2R, el: cam.el * D2R});
 
     // callouts
-    const vis = ss(1.1, 1.8, since) * (ov.callouts ? 1 : 0) * (sel || expK > 0.04 ? 0 : 1);
+    const vis = ss(1.1, 1.8, since) * (ov.callouts ? 1 : 0) * (sel || focus || driveOn || expK > 0.04 || ui.tab === 'q' ? 0 : 1);
     const callouts = [];
     for (const [key, name, sub, label, w] of CALLS[view] || []) {
       const at = st.project(st.bike.anchors[key]);
@@ -575,6 +761,8 @@ export function runLive() {
       playText: playText(play),
       playK: playI / (PLAYS.length - 1),
       paused,
+      drive: driveOn,
+      sound: soundOn,
       sel,
       outT,
       explode: expK,
@@ -623,7 +811,10 @@ export function runLive() {
     }
     if (o.explode !== undefined) expT = o.explode;
     if (o.out) for (const k of o.out) outT[k] = 1;
-    if (o.tab) ui.setTab(o.tab);
+    if (o.tab) {
+      ui.setTab(o.tab);
+      ui.onTab(o.tab, 'v');
+    }
   }};
   void drive;
 }

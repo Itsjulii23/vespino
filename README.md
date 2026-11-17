@@ -8,7 +8,9 @@ Maqueta 3D interactiva de un **Vespino** (el ciclomotor español de dos tiempos 
 
 ## Cómo abrirla
 
-Descarga `vespino-3d.html` y ábrela en Chrome, Edge o Firefox. No hay que instalar nada.
+**En la web:** https://itsjulii23.github.io/vespino/
+
+**En tu ordenador:** descarga `vespino-3d.html` y ábrela en Chrome, Edge o Firefox. No hay que instalar nada.
 
 ## Qué se ha creado
 
@@ -19,14 +21,25 @@ Todo el modelo está generado por código con [three.js](https://threejs.org), s
 - **Variador de correa** con poleas, muelle y embrague centrífugo, y la reducción final por engranajes.
 - **Escena** con asfalto, sombras, niebla y un cielo que se refleja en la pintura.
 
-### Cuatro pestañas
+### Siete pestañas
 
 | Pestaña | Qué hace |
 | --- | --- |
-| **Vistas** | Seis cámaras (general, lateral, motor, transmisión, manillar, frontal), tres cortes (sólido, cristal, sección), rótulos, gases y un recorrido automático. |
-| **Piezas** | 43 piezas desmontables. Clic para ver su ficha, doble clic para quitarla y un deslizador de despiece. |
-| **Motor** | Lección de 8 temas sobre cómo funciona un dos tiempos, con el motor aislado y visto a través de la carrocería. |
-| **Historia** | Línea de tiempo del Vespino (1967–2000) y de la marca (Piaggio, Moto Vespa S.A.). |
+| **Vistas** | Seis cámaras, tres cortes (sólido, cristal, sección), rótulos, gases, recorrido automático, **modo conducción** y **sonido** del motor. |
+| **Piezas** | 43 piezas desmontables. Clic para ver su ficha, doble clic para quitarla y deslizador de despiece. |
+| **Motor** | Lección de 9 temas del motor de dos tiempos. Cada carrera del pistón se repite en bucle y en cámara lenta junto a su explicación. |
+| **Historia** | Línea de tiempo del Vespino (1967–2000) y de la marca. |
+| **Averías** | 9 averías típicas (no arranca, humo, patina, golpeteo…) con síntomas, causa, cómo se revisa y solución; las piezas implicadas se iluminan. |
+| **Quiz** | «Adivina la pieza» y «Monta la moto»: la moto empieza desmontada y hay que colocar 14 piezas en el orden correcto. |
+| **Modelos** | 13 modelos reales (Vespino, Brisa, Rally, Tour, T, NL, SC, AL, XE, Telepizza…) y cambio de color y accesorios. |
+
+![Pestaña Averías](docs/pestana-averias.png)
+
+![Quiz](docs/pestana-quiz.png)
+
+![Modelos y color](docs/pestana-modelos.png)
+
+![Modo conducción](docs/modo-conduccion.png)
 
 ## Despiece completo
 
@@ -51,11 +64,13 @@ La moto entera desmontada: carrocería, dirección, ruedas, motor, transmisión 
 - **Arrastrar** gira la moto; la **rueda del ratón** acerca y aleja.
 - **Clic** en una pieza abre su ficha; **doble clic** la quita; **Esc** vuelve a la vista general.
 - **1 a 6** cambian de cámara; **H** oculta los paneles.
+- La dirección web se actualiza al elegir una pieza o una pestaña (por ejemplo `#pieza=carter` o `#tab=m`): copia el enlace para compartirla.
+- En pantallas pequeñas los paneles se ocultan y aparece un botón **☰ Menú**; el diseño está pensado para ordenador.
 - Los deslizadores controlan el acelerador y la velocidad de reproducción (puedes ir a cámara lenta).
 
 ## Rendimiento
 
-La página mide sus fotogramas y baja sola la calidad (sombras, suavizado, resolución) en equipos con gráfica integrada.
+La página mide sus fotogramas y baja sola la calidad (cuatro niveles: sombras que se redibujan cada pocos fotogramas, menos resolución y suavizado) en equipos con gráfica integrada. Las piezas nuevas no añaden geometría pesada y el sonido es sintetizado por código, sin archivos.
 
 ## Estructura del código
 
@@ -66,6 +81,7 @@ vespino-sim/
   bike.js           el modelo 3D y el sistema de piezas
   parts.js          las 43 piezas y sus fichas
   motor.js          los temas de la pestaña Motor
+  learn.js          averías, modelos y colores
   history.js        la línea de tiempo
   stage.js          escena, luces, sombras y calidad
   console.js        la interfaz

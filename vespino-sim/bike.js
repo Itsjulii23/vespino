@@ -49,6 +49,7 @@ const GLASS = new THREE.MeshPhysicalMaterial({color: '#cfe8ff', metalness: 0, ro
 const PORTM = std({color: '#2c2f35', metalness: 0.2, roughness: 0.8});
 const gasMat = () => new THREE.MeshStandardMaterial({color: '#3d8fe0', roughness: 0.5, transparent: true, opacity: 0.55, depthWrite: false, emissive: '#000000', emissiveIntensity: 0.5});
 // materials that become glass or hollow in the cutaway modes
+let INSET = null;
 const GREEN2 = GREEN.clone();
 GREEN2.side = THREE.DoubleSide;
 GREEN2.userData.double = true;
@@ -282,6 +283,7 @@ export function buildBike() {
     const panel = mesh(new RoundedBoxGeometry(0.25, 0.3, 0.21, 6, 0.055), GREEN, [0.3, 0.575, 0], [0, 0, -0.1]);
     body.add(panel);
     const inset = std({color: '#6fb15d', metalness: 0.4, roughness: 0.35});
+    INSET = inset;
     SHELLS.push(inset);
     for (const sd of [1, -1]) {
       const d = mesh(new RoundedBoxGeometry(0.13, 0.17, 0.006, 3, 0.012), inset, [0.31, 0.57, sd * 0.1035], [0, 0, -0.1]);
@@ -877,13 +879,15 @@ export function buildBike() {
     return ov;
   };
   const hl = {hover: null, sel: null};
+  const arr = (h) => (Array.isArray(h) ? h : [h]);
   const setHighlight = (hover, sel) => {
-    const ids = new Set([hl.hover, hl.sel, hover, sel]);
+    const hs = arr(hover);
+    const ids = new Set([...arr(hl.hover), hl.sel, ...hs, sel]);
     hl.hover = hover;
     hl.sel = sel;
     for (const id of ids) {
       if (!id || !partMeshes[id]) continue;
-      const on = id === hover || id === sel;
+      const on = id === sel || hs.includes(id);
       for (const m of partMeshes[id]) {
         if (!on && !m.userData.ov) continue;
         const ov = overlayOf(m);
@@ -891,6 +895,15 @@ export function buildBike() {
         ov.material = id === sel ? selMat : hoverMat;
       }
     }
+  };
+  // paint colour and optional accessories
+  const setPaint = (hex) => {
+    GREEN.color.set(hex);
+    GREEN2.color.set(hex);
+    if (INSET) INSET.color.set(hex).offsetHSL(0, -0.03, -0.06);
+  };
+  const setPartVisible = (id, on) => {
+    for (const m of partMeshes[id] || []) m.visible = on;
   };
   const ray = new THREE.Raycaster();
   const visibleDeep = (o) => {
@@ -915,5 +928,5 @@ export function buildBike() {
     return box;
   };
 
-  return {root, update, setCut, setIsolate, anchors, partMeshes, pick, partBox, setHighlight, extraMats: [hoverMat, selMat], state: st, setCharge: (on) => ((gas.visible = on), (ccGas.visible = on)), portsG, liner, caseG, castings, eng, shell};
+  return {root, update, setCut, setIsolate, anchors, partMeshes, pick, partBox, setHighlight, setPaint, setPartVisible, extraMats: [hoverMat, selMat], state: st, setCharge: (on) => ((gas.visible = on), (ccGas.visible = on)), portsG, liner, caseG, castings, eng, shell};
 }
