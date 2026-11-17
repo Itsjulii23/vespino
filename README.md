@@ -2,6 +2,8 @@
 
 Maqueta 3D interactiva de un **Vespino** (el ciclomotor español de dos tiempos fabricado en Madrid por Moto Vespa S.A.). Es una sola página HTML que funciona **sin internet**: se abre con doble clic.
 
+> 💚 **Hecho con la skill [teardown](https://github.com/elvarofficial/teardown) de [@elvarofficial](https://github.com/elvarofficial).** Todo el simulador (escena, cortes, recorrido automático) nace de su trabajo. ¡Muchísimas gracias, es una pasada! Más abajo, en [Agradecimientos](#agradecimientos).
+
 ![Vista general](docs/vista-general.png)
 
 ## Cómo abrirla
