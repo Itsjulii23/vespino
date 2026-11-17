@@ -79,6 +79,12 @@ El resultado queda en `teardown-out/dist/vespino-sim.html`.
 - Los **textos de las piezas** están escritos con conocimientos generales de motores de dos tiempos.
 - Es una aproximación visual: la forma, la posición del depósito y los despieces no son un plano oficial.
 
+## Agradecimientos
+
+Gracias a **[elvarofficial](https://github.com/elvarofficial)** por la skill [teardown](https://github.com/elvarofficial/teardown), que ha hecho posible esta maqueta: el motor de escena, las capturas, el recorrido automático y la estructura de simulador salen de su trabajo. ¡Un trabajazo! 🙌
+
+La skill, a su vez, se apoya en [claude-motion](https://github.com/whaleyxbt/claude-motion) (MIT).
+
 ## Aviso
 
 Proyecto personal y educativo, sin relación con Piaggio ni con Moto Vespa S.A. «Vespino» y «Vespa» son marcas de sus propietarios.
