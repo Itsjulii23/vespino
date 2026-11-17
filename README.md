@@ -28,7 +28,17 @@ Todo el modelo está generado por código con [three.js](https://threejs.org), s
 | **Motor** | Lección de 8 temas sobre cómo funciona un dos tiempos, con el motor aislado y visto a través de la carrocería. |
 | **Historia** | Línea de tiempo del Vespino (1967–2000) y de la marca (Piaggio, Moto Vespa S.A.). |
 
-![Despiece](docs/despiece.png)
+## Despiece completo
+
+La moto entera desmontada: carrocería, dirección, ruedas, motor, transmisión y escape. En la maqueta se controla con el deslizador **Despiece** o quitando las piezas una a una.
+
+![Despiece completo](docs/despiece-completo.webp)
+
+📖 **[Catálogo de las 43 piezas](docs/PIEZAS.md)**, cada una con qué hace, cómo funciona, un dato y las piezas relacionadas.
+
+### Más capturas
+
+![Despiece en la maqueta](docs/despiece.png)
 
 ![Ficha de una pieza](docs/ficha-pieza.png)
 
