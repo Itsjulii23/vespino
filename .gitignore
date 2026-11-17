@@ -1,0 +1,7 @@
+teardown-out/
+node_modules/
+webp/
+.impeccable/
+*.env
+.env*
+Captura de pantalla*
