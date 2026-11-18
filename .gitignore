@@ -5,3 +5,9 @@ webp/
 *.env
 .env*
 Captura de pantalla*
+
+# fotos de referencia de terceros (solo uso local)
+referencias/
+# complemento MCP de Blender y copias de seguridad
+addon.py
+*.blend1

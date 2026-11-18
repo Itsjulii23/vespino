@@ -1,118 +1,123 @@
 # Vespino 3D
 
-Maqueta 3D interactiva de un **Vespino** (el ciclomotor español de dos tiempos fabricado en Madrid por Moto Vespa S.A.). Es una sola página HTML que funciona **sin internet**: se abre con doble clic.
+Si has crecido en España, seguro que has visto (o has tenido) un Vespino. Este proyecto es mi forma de desmontarlo pieza a pieza sin mancharme las manos de aceite: una maqueta 3D que puedes girar, abrir por dentro y ver funcionar.
 
-> 💚 **Hecho con la skill [teardown](https://github.com/elvarofficial/teardown) de [@elvarofficial](https://github.com/elvarofficial).** Todo el simulador (escena, cortes, recorrido automático) nace de su trabajo. ¡Muchísimas gracias, es una pasada! Más abajo, en [Agradecimientos](#agradecimientos).
+Todo cabe en una sola página HTML que funciona sin internet. Le das doble clic y ya está.
+
+> **Antes de nada, gracias a [@elvarofficial](https://github.com/elvarofficial).** La maqueta está construida con su skill [teardown](https://github.com/elvarofficial/teardown): la escena, los cortes, el recorrido automático y toda la estructura del simulador salen de ahí. Sin ese trabajo esto no existiría. Hay más en [Agradecimientos](#agradecimientos).
 
 ![Vista general](docs/vista-general.png)
 
-## Cómo abrirla
+## Pruébala
 
-**En la web:** https://itsjulii23.github.io/vespino/
+- **En el navegador:** https://itsjulii23.github.io/vespino/
+- **En tu ordenador:** descarga `vespino-3d.html` y ábrelo con Chrome, Edge o Firefox. No hace falta instalar nada.
 
-**En tu ordenador:** descarga `vespino-3d.html` y ábrela en Chrome, Edge o Firefox. No hay que instalar nada.
+## Qué puedes hacer con ella
 
-## Qué se ha creado
-
-Todo el modelo está generado por código con [three.js](https://threejs.org), sin modelos 3D descargados:
-
-- **Carrocería de chapa** con el espinazo central, guardabarros, sillín en forma de pera, portabultos y faro.
-- **Motor de dos tiempos de 49,8 cc** con pistón, biela, cigüeñal, cilindro, carburador y escape, que se mueven con la cinemática real de biela-manivela.
-- **Variador de correa** con poleas, muelle y embrague centrífugo, y la reducción final por engranajes.
-- **Escena** con asfalto, sombras, niebla y un cielo que se refleja en la pintura.
-
-### Siete pestañas
-
-| Pestaña | Qué hace |
-| --- | --- |
-| **Vistas** | Seis cámaras, tres cortes (sólido, cristal, sección), rótulos, gases, recorrido automático, **modo conducción** y **sonido** del motor. |
-| **Piezas** | 43 piezas desmontables. Clic para ver su ficha, doble clic para quitarla y deslizador de despiece. |
-| **Motor** | Lección de 9 temas del motor de dos tiempos. Cada carrera del pistón se repite en bucle y en cámara lenta junto a su explicación. |
-| **Historia** | Línea de tiempo del Vespino (1967–2000) y de la marca. |
-| **Averías** | 9 averías típicas (no arranca, humo, patina, golpeteo…) con síntomas, causa, cómo se revisa y solución; las piezas implicadas se iluminan. |
-| **Quiz** | «Adivina la pieza» y «Monta la moto»: la moto empieza desmontada y hay que colocar 14 piezas en el orden correcto. |
-| **Modelos** | 13 modelos reales (Vespino, Brisa, Rally, Tour, T, NL, SC, AL, XE, Telepizza…) y cambio de color y accesorios. |
-
-![Pestaña Averías](docs/pestana-averias.png)
-
-![Quiz](docs/pestana-quiz.png)
-
-![Modelos y color](docs/pestana-modelos.png)
-
-![Modo conducción](docs/modo-conduccion.png)
-
-## Despiece completo
-
-La moto entera desmontada: carrocería, dirección, ruedas, motor, transmisión y escape. En la maqueta se controla con el deslizador **Despiece** o quitando las piezas una a una.
+Lo que más me gusta es desmontarla. Tiene 43 piezas y cada una se puede quitar, mirar de cerca y leer para qué sirve. Si arrastras el deslizador de **Despiece**, la moto se abre entera en el aire.
 
 ![Despiece completo](docs/despiece-completo.webp)
 
-📖 **[Catálogo de las 43 piezas](docs/PIEZAS.md)**, cada una con qué hace, cómo funciona, un dato y las piezas relacionadas.
+Además del despiece, hay siete pestañas:
 
-### Más capturas
+| Pestaña | Qué encontrarás |
+| --- | --- |
+| **Vistas** | Seis cámaras, cortes para ver por dentro, un recorrido automático, modo conducción y el sonido del motor. |
+| **Piezas** | Las 43 piezas. Un clic abre su ficha, doble clic la quita. |
+| **Motor** | Nueve lecciones sobre cómo funciona un dos tiempos, con el pistón moviéndose a cámara lenta mientras lees. |
+| **Historia** | La vida del Vespino desde 1967 hasta 2000. |
+| **Averías** | Nueve averías de las de siempre (no arranca, echa humo, patina…) con cómo detectarlas y arreglarlas. Las piezas implicadas se iluminan. |
+| **Quiz** | «Adivina la pieza» y «Monta la moto», donde empiezas con la moto desmontada y tienes que montarla en orden. |
+| **Modelos** | 13 modelos reales, del primer Vespino al de Telepizza, y cambio de color y accesorios. |
 
+![Pestaña Averías](docs/pestana-averias.png)
+
+El motor no es decorativo: pistón, biela y cigüeñal se mueven con la cinemática real de biela-manivela, y el variador abre y cierra sus poleas según el acelerador.
+
+Si quieres leer sobre las piezas sin abrir la maqueta, está el **[catálogo de las 43 piezas](docs/PIEZAS.md)**.
+
+<details>
+<summary>Más capturas</summary>
+
+![Quiz](docs/pestana-quiz.png)
+![Modelos y color](docs/pestana-modelos.png)
+![Modo conducción](docs/modo-conduccion.png)
 ![Despiece en la maqueta](docs/despiece.png)
-
 ![Ficha de una pieza](docs/ficha-pieza.png)
-
 ![Pestaña Motor](docs/pestana-motor.png)
-
 ![Pestaña Historia](docs/pestana-historia.png)
 
-## Cómo usarla
+</details>
 
-- **Arrastrar** gira la moto; la **rueda del ratón** acerca y aleja.
-- **Clic** en una pieza abre su ficha; **doble clic** la quita; **Esc** vuelve a la vista general.
-- **1 a 6** cambian de cámara; **H** oculta los paneles.
-- La dirección web se actualiza al elegir una pieza o una pestaña (por ejemplo `#pieza=carter` o `#tab=m`): copia el enlace para compartirla.
-- En pantallas pequeñas los paneles se ocultan y aparece un botón **☰ Menú**; el diseño está pensado para ordenador.
-- Los deslizadores controlan el acelerador y la velocidad de reproducción (puedes ir a cámara lenta).
+## Cómo se maneja
 
-## Rendimiento
+- **Arrastra** para girar la moto y usa la **rueda del ratón** para acercarte.
+- **Clic** en una pieza para ver su ficha, **doble clic** para quitarla y **Esc** para volver.
+- Las teclas **1 a 6** cambian de cámara y **H** esconde los paneles.
+- La dirección de la página cambia al elegir una pieza o una pestaña (por ejemplo `#pieza=carter`), así que puedes copiar el enlace y compartir justo lo que estás viendo.
+- En el móvil los paneles se esconden tras un botón **☰ Menú**, pero donde mejor se ve es en el ordenador.
 
-La página mide sus fotogramas y baja sola la calidad (cuatro niveles: sombras que se redibujan cada pocos fotogramas, menos resolución y suavizado) en equipos con gráfica integrada. Las piezas nuevas no añaden geometría pesada y el sonido es sintetizado por código, sin archivos.
+Si tu ordenador va justo, la página lo nota y baja la calidad sola para que no vaya a saltos.
 
-## Estructura del código
+## Lo nuevo: el Mortadelo en Blender
+
+La maqueta web está hecha por código y su forma es aproximada. Ahora estoy haciendo un modelo más fiel en Blender, empezando por el primer Vespino de todos, el de 1968 al que muchos llaman **Mortadelo**.
+
+![El Mortadelo en Blender](docs/mortadelo-blender.png)
+
+Esta vez las medidas son las de la ficha técnica: 1130 mm entre ejes, 1760 mm de largo, 1040 mm de alto y ruedas de 18 pulgadas. La silueta está calcada de la foto de perfil del catálogo original, escalada con esas medidas. Al comprobarla, el largo, el alto y las ruedas cuadran con la ficha con menos de un 2 % de error.
+
+Por ahora está el volumen general de las 43 piezas, cada una con el mismo nombre que en la maqueta para que algún día se puedan intercambiar. Lo siguiente es ir afinando pieza a pieza. Más adelante la idea es meterlo en una web donde se cargue al pulsar un botón, y añadir otros modelos de Vespino.
+
+- `blender/mortadelo.blend`: el archivo de Blender.
+- `models/mortadelo.glb`: el modelo exportado para la web (unos 500 KB).
+
+## Por dentro
 
 ```
 vespino-3d.html     la maqueta compilada (un solo archivo)
-vespino-sim/
-  kin.js            cinemática del motor y de la transmisión
-  bike.js           el modelo 3D y el sistema de piezas
+vespino-sim/        el código de la maqueta
+  kin.js            cómo se mueven el motor y la transmisión
+  bike.js           el modelo 3D y las piezas
   parts.js          las 43 piezas y sus fichas
-  motor.js          los temas de la pestaña Motor
+  motor.js          las lecciones del motor
   learn.js          averías, modelos y colores
   history.js        la línea de tiempo
-  stage.js          escena, luces, sombras y calidad
+  stage.js          escena, luces y calidad
   console.js        la interfaz
   live.js           la interacción
-  main.js           punto de entrada
+  main.js           el punto de entrada
+blender/            modelos de Blender
+models/             modelos exportados a GLB
 ```
 
-## Cómo recompilarla
-
-Se construye con la skill [teardown](https://github.com/elvarofficial/teardown) (necesita Node 20 o superior):
+Para volver a compilar la maqueta hace falta la skill [teardown](https://github.com/elvarofficial/teardown) y Node 20 o superior:
 
 ```
 node "<ruta-de-teardown>/sims/build.mjs" ./vespino-sim
 ```
 
-El resultado queda en `teardown-out/dist/vespino-sim.html`.
+El resultado sale en `teardown-out/dist/vespino-sim.html`.
 
-## Datos y fuentes
+## De dónde salen los datos
 
-- Las **fechas, modelos y cifras históricas** proceden de [Wikipedia](https://es.wikipedia.org/wiki/Motovespa_Vespino), [vespinos.org](https://vespinos.org/historia-del-vespino/) y [Motorpasión Moto](https://www.motorpasionmoto.com/scooter/el-mitico-vespino-cumple-50-anos-el-ciclomotor-que-se-viralizo-en-espana). Las fuentes no coinciden del todo en algunas fechas.
-- Cilindrada (49,77 cm³), diámetro por carrera (38,4 × 43 mm), potencia y consumo vienen de esas fuentes.
-- La **reducción final 22:1, los radios del variador y el régimen del embrague son estimaciones**, no datos del manual.
-- Los **textos de las piezas** están escritos con conocimientos generales de motores de dos tiempos.
-- Es una aproximación visual: la forma, la posición del depósito y los despieces no son un plano oficial.
+He intentado no inventarme nada, pero conviene que sepas qué es dato y qué es aproximación:
+
+- Las fechas, los modelos y la historia vienen de [Wikipedia](https://es.wikipedia.org/wiki/Motovespa_Vespino), [vespinos.org](https://vespinos.org/historia-del-vespino/) y [Motorpasión Moto](https://www.motorpasionmoto.com/scooter/el-mitico-vespino-cumple-50-anos-el-ciclomotor-que-se-viralizo-en-espana). En alguna fecha no se ponen de acuerdo entre ellas.
+- La cilindrada (49,77 cc), el diámetro y la carrera (38,4 × 43 mm) y las medidas del Mortadelo vienen de esas fuentes y de la ficha de [vespinos.org](https://vespinos.org/vespinos-con-valvula-rotativa/).
+- La reducción final, el tamaño de las poleas del variador y las revoluciones del embrague son estimaciones mías, no datos del manual.
+- Los textos de las piezas están escritos con lo que se sabe en general de los motores de dos tiempos.
+- En el modelo de Blender, lo que no se ve en las fotos (el interior del motor, la parte de atrás) está colocado según la ficha y la lógica mecánica.
 
 ## Agradecimientos
 
-Gracias a **[elvarofficial](https://github.com/elvarofficial)** por la skill [teardown](https://github.com/elvarofficial/teardown), que ha hecho posible esta maqueta: el motor de escena, las capturas, el recorrido automático y la estructura de simulador salen de su trabajo. ¡Un trabajazo! 🙌
+Otra vez, gracias a **[elvarofficial](https://github.com/elvarofficial)** por la skill [teardown](https://github.com/elvarofficial/teardown). El motor de escena, las capturas, el recorrido automático y la forma de montar el simulador son suyos. Un trabajazo.
 
-La skill, a su vez, se apoya en [claude-motion](https://github.com/whaleyxbt/claude-motion) (MIT).
+La skill, a su vez, usa [claude-motion](https://github.com/whaleyxbt/claude-motion) (licencia MIT).
+
+Y gracias a la gente de [vespinos.org](https://vespinos.org), [vespinos.com](https://www.vespinos.com), [Vespinarium](http://vespinarium.blogspot.com) y [gaviras.com](https://gaviras.com), que comparten fotos y fichas de sus Vespinos y sin las que el modelo de Blender no habría sido posible.
 
 ## Aviso
 
-Proyecto personal y educativo, sin relación con Piaggio ni con Moto Vespa S.A. «Vespino» y «Vespa» son marcas de sus propietarios.
+Es un proyecto personal y educativo, sin relación con Piaggio ni con Moto Vespa S.A. «Vespino» y «Vespa» son marcas de sus dueños.
