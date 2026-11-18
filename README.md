@@ -1,41 +1,39 @@
 # Vespino 3D
 
-Si has crecido en España, es difícil que no te suene el Vespino: el ciclomotor que se oía antes de verlo, el que llevaba medio país al instituto o a la obra. Yo quería saber qué tenía dentro, así que lo he desmontado. Sin llaves ni aceite: en 3D, pieza a pieza, con el motor funcionando.
+**Un Vespino Mortadelo en 3D que puedes girar, desmontar pieza a pieza y poner en marcha, desde el navegador y sin instalar nada.**
 
-Todo cabe en una sola página HTML que funciona sin internet. Le das doble clic y ya está.
-
-> **Antes que nada, gracias a [@elvarofficial](https://github.com/elvarofficial).** La maqueta está hecha con su skill [teardown](https://github.com/elvarofficial/teardown): la escena, los cortes, el recorrido automático y toda la base del simulador vienen de ahí. Sin su trabajo esto no existiría. Hay más en [Agradecimientos](#agradecimientos).
+[**▶ Abrir la maqueta**](https://itsjulii23.github.io/vespino/) · [Qué puedes hacer](#qué-puedes-hacer) · [Cómo se maneja](#cómo-se-maneja) · [Cómo está hecho](#cómo-está-hecho) · [Mis skills](#mis-skills)
 
 ![El Vespino en la tienda con las luces encendidas](docs/tienda-luces.png)
 
-## Pruébala
+Si has crecido en España, es difícil que no te suene el Vespino: el ciclomotor que se oía antes de verlo, el que llevaba medio país al instituto o a la obra. Yo quería saber qué tenía dentro, así que lo he desmontado. Sin llaves ni aceite: en 3D, con el motor funcionando.
 
-- **En el navegador:** https://itsjulii23.github.io/vespino/
-- **En tu ordenador:** descarga `vespino-3d.html` y ábrelo con Chrome, Edge o Firefox. No hay que instalar nada.
+Todo cabe en una sola página HTML que funciona sin internet. También puedes descargar [`vespino-3d.html`](vespino-3d.html) y abrirla con doble clic en Chrome, Edge o Firefox.
 
-## Qué hay dentro
+> **Antes que nada, gracias a [@elvarofficial](https://github.com/elvarofficial).** La maqueta está hecha con su skill [teardown](https://github.com/elvarofficial/teardown): la escena, los cortes, el recorrido automático y toda la base del simulador vienen de ahí. Sin su trabajo esto no existiría. Hay más en [Agradecimientos](#agradecimientos).
 
-La moto es el primer Vespino, el de 1968 al que todo el mundo llama **Mortadelo**. La modelé en Blender con las medidas de su ficha técnica; más abajo cuento cómo.
+## Qué puedes hacer
 
-Está aparcada en una tienda parecida a la de las fotos que usé de referencia: suelo de baldosa clara, un trozo de baldosa hidráulica, pared gris azulada con cuadros, una escalera con barandilla y una papelera. Si le das a **Conducción**, sale a la carretera.
+### Desmontarlo
 
-Lo que más me gusta es desmontarla. Tiene 43 piezas y cada una se puede quitar, mirar de cerca y leer para qué sirve. Si arrastras el deslizador de **Despiece**, la moto se abre entera en el aire.
+La moto es el primer Vespino, el de 1968 al que todo el mundo llama **Mortadelo**. Tiene 43 piezas y cada una se puede quitar, mirar de cerca y leer para qué sirve. Si arrastras el deslizador de **Despiece**, se abre entera en el aire.
 
 ![Despiece](docs/despiece.png)
 
-Y si una pieza te llama la atención, en su ficha está el botón **Examinar en 3D**. La saca sola a pantalla completa y la puedes girar como quieras, igual que si la tuvieras en la mano.
+Si una pieza te llama la atención, en su ficha tienes el botón **Examinar en 3D**: la saca sola a pantalla completa y la puedes girar como quieras, igual que si la tuvieras en la mano.
 
 ![Examinar una pieza en 3D](docs/examinar-pieza.png)
 
-### Arrancarla
+### Arrancarlo
 
-Abajo a la derecha está el **puño del acelerador**. Arrástralo hacia arriba y el motor sube de vueltas. Cuanto más lo giras, más fuerte suena. Al soltarlo vuelve solo al ralentí, como uno de verdad.
-
-Por el escape sale humo a bocanadas, al ritmo de las explosiones. Si aceleras, sale más espeso, y si vas en marcha se queda atrás. Con el botón **Luces** se encienden el faro, que ilumina el suelo, y el piloto de atrás.
+- **Puño del acelerador** (abajo a la derecha): arrástralo hacia arriba y el motor sube de vueltas. Cuanto más lo giras, más fuerte suena. Al soltarlo vuelve solo al ralentí, como uno de verdad.
+- **Humo del escape**: sale a bocanadas, al ritmo de las explosiones. Si aceleras sale más espeso, y si vas en marcha se queda atrás.
+- **Luces**: el botón **Luces** enciende el faro, que ilumina el suelo, y el piloto de atrás.
+- **Conducción**: la moto sale de la tienda a la carretera y el variador va cambiando de marcha solo.
 
 El motor no está de adorno. El pistón, la biela y el cigüeñal se mueven con la cinemática real, y el variador abre y cierra sus poleas según lo que aceleres.
 
-### Las pestañas
+### Aprender
 
 | Pestaña | Qué vas a encontrar |
 | --- | --- |
@@ -43,11 +41,11 @@ El motor no está de adorno. El pistón, la biela y el cigüeñal se mueven con 
 | **Piezas** | Las 43 piezas. Un clic abre su ficha y doble clic la quita. |
 | **Motor** | Nueve lecciones sobre cómo funciona un dos tiempos, con el pistón a cámara lenta mientras lees. |
 | **Historia** | La vida del Vespino de 1967 a 2000. |
-| **Averías** | Nueve averías de toda la vida (no arranca, echa humo, patina…), con cómo detectarlas y arreglarlas. Las piezas que tienen que ver se iluminan. |
+| **Averías** | Nueve averías de toda la vida (no arranca, echa humo, patina…), con cómo detectarlas y arreglarlas. Las piezas implicadas se iluminan. |
 | **Quiz** | «Adivina la pieza» y «Monta la moto»: empiezas con la moto desmontada y tienes que montarla en orden. |
 | **Modelos** | 13 modelos reales, del primer Vespino al de Telepizza, y cambio de color y accesorios. |
 
-Si prefieres leer sobre las piezas sin abrir la maqueta, aquí está el **[catálogo de las 43 piezas](docs/PIEZAS.md)**.
+¿Prefieres leer sin abrir la maqueta? Aquí está el **[catálogo de las 43 piezas](docs/PIEZAS.md)**.
 
 <details>
 <summary>Más capturas</summary>
@@ -64,15 +62,23 @@ Si prefieres leer sobre las piezas sin abrir la maqueta, aquí está el **[catá
 
 ## Cómo se maneja
 
-- **Arrastra** para girar la moto y usa la **rueda del ratón** para acercarte.
-- **Clic** en una pieza para ver su ficha, **doble clic** para quitarla y **Esc** para volver.
-- Las teclas **1 a 6** cambian de cámara, **L** enciende las luces y **H** esconde los paneles.
-- Si eliges una pieza o una pestaña, la dirección de la página cambia (por ejemplo `#pieza=carter`). Así puedes mandarle a alguien justo lo que estás viendo.
-- En el móvil los paneles van detrás de un botón **☰ Menú**, aunque donde mejor se ve es en el ordenador.
+| Quieres… | Haz esto |
+| --- | --- |
+| Girar la moto | Arrastra con el ratón |
+| Acercarte o alejarte | Rueda del ratón |
+| Ver qué es una pieza | Clic sobre ella |
+| Quitar una pieza | Doble clic (o «Quitar pieza» en su ficha) |
+| Volver a ver toda la moto | **Esc** |
+| Cambiar de cámara | Teclas **1** a **6** |
+| Encender las luces | Tecla **L** |
+| Dar gas | Arrastra el puño, o las flechas ↑ ↓ |
+| Esconder los paneles | Tecla **H** |
 
-Si tu ordenador va justo, la página lo nota y baja la calidad sola para no ir a saltos.
+Si eliges una pieza o una pestaña, la dirección de la página cambia (por ejemplo `#pieza=carter`), así que puedes mandarle a alguien justo lo que estás viendo. En el móvil los paneles van detrás de un botón **☰ Menú**, aunque donde mejor se ve es en el ordenador. Si tu ordenador va justo, la página lo nota y baja la calidad sola para no ir a saltos.
 
-## El Mortadelo en Blender
+## Cómo está hecho
+
+### El Mortadelo en Blender
 
 Al principio la moto estaba hecha toda por código y se parecía a un Vespino… más o menos. Ahora la carrocería, la dirección, el motor por fuera, el escape y los pedales salen de un modelo de Blender del Mortadelo.
 
@@ -84,23 +90,13 @@ Como no me fiaba de mi ojo, cada pieza se compara con la foto: Blender la dibuja
 
 Las piezas que se mueven (pistón, biela, cigüeñal, poleas, correa, engranajes y ruedas) siguen hechas por código, porque las mueve la cinemática del motor. Eso sí, ahora están donde van en el Mortadelo.
 
-- `blender/scripts/mortadelo_*.py`: la moto entera sale de estos scripts. Si quiero cambiar una pieza, toco el script y la vuelvo a generar. Así fue, por ejemplo, como pasé el espejo al lado izquierdo, que es donde va.
-- `blender/mortadelo.blend`: el archivo de Blender.
-- `vespino-sim/mortadelo.glb`: las piezas que usa la maqueta. Va metido dentro del HTML, así que sigue funcionando sin internet.
-- `models/mortadelo.glb`: el modelo completo, con las 43 piezas.
+La moto entera sale de scripts: si quiero cambiar una pieza, toco el script y la vuelvo a generar. Así fue, por ejemplo, como pasé el espejo al lado izquierdo, que es donde va.
 
-Me gustaría ir añadiendo otros modelos de Vespino.
+### La tienda
 
-## Mis skills
+La moto está aparcada en una tienda parecida a la de las fotos que usé de referencia: suelo de baldosa clara, un trozo de baldosa hidráulica, pared gris azulada con cuadros, una escalera con barandilla y una papelera. Está todo dibujado por código; no uso esas fotos ni sus carteles.
 
-Para todo el modelado escribí dos skills de Claude Code. Una skill es un archivo de instrucciones que Claude lee antes de ponerse con una tarea. Las dos están en este repositorio:
-
-- **[blender-modelo-desde-fotos](skills/blender-modelo-desde-fotos/SKILL.md)**: la general. Sirve para modelar en Blender cualquier objeto real a partir de fotos y medidas oficiales: calibrar las fotos, comparar la silueta del modelo con la foto, nombrar las piezas y exportar a GLB para la web. La puedes copiar a `~/.claude/skills/` y usarla en tus propios proyectos.
-- **[vespino-blender](.claude/skills/vespino-blender/SKILL.md)**: la de este proyecto. Lleva las medidas del Mortadelo, los nombres de las piezas, cuándo dar una pieza por buena y cómo meter el modelo en la maqueta. Tiene una ficha por modelo en [`modelos/`](.claude/skills/vespino-blender/modelos/mortadelo.md), para cuando lleguen más Vespinos.
-
-La primera dice **cómo** modelar y la segunda **qué**. En [`skills/README.md`](skills/README.md) explico cómo instalarlas.
-
-## Por dentro
+### Estructura del proyecto
 
 ```
 vespino-3d.html     la maqueta compilada (un solo archivo)
@@ -121,23 +117,31 @@ vespino-sim/        el código de la maqueta
   live.js           la interacción
   main.js           el punto de entrada
   tests/            pruebas
-blender/            el modelo de Blender y los scripts que lo generan
-models/             modelos exportados a GLB
+blender/            el modelo de Blender (.blend) y los scripts que lo generan
+models/             modelos exportados a GLB (mortadelo.glb, las 43 piezas)
 skills/             mi skill general de modelado desde fotos
 .claude/skills/     la skill del Vespino
 ```
 
-Para volver a compilar la maqueta hace falta la skill [teardown](https://github.com/elvarofficial/teardown) y Node 20 o superior:
+### Compilarlo y probarlo
+
+Hace falta la skill [teardown](https://github.com/elvarofficial/teardown) y Node 20 o superior:
 
 ```
 node "<ruta-de-teardown>/sims/build.mjs" ./vespino-sim
-```
-
-El resultado sale en `teardown-out/dist/vespino-sim.html`. Las pruebas se lanzan con:
-
-```
 node --test vespino-sim/tests/glb.test.mjs vespino-sim/tests/page.test.mjs
 ```
+
+La compilación sale en `teardown-out/dist/vespino-sim.html`. El modelo va metido dentro del HTML, por eso la página sigue funcionando sin internet.
+
+## Mis skills
+
+Para todo el modelado escribí dos skills de Claude Code. Una skill es un archivo de instrucciones que Claude lee antes de ponerse con una tarea. Las dos están en este repositorio:
+
+- **[blender-modelo-desde-fotos](skills/blender-modelo-desde-fotos/SKILL.md)**: la general. Sirve para modelar en Blender cualquier objeto real a partir de fotos y medidas oficiales: calibrar las fotos, comparar la silueta con la del modelo, nombrar las piezas y exportar a GLB para la web. Puedes copiarla a `~/.claude/skills/` y usarla en tus propios proyectos.
+- **[vespino-blender](.claude/skills/vespino-blender/SKILL.md)**: la de este proyecto. Lleva las medidas del Mortadelo, los nombres de las piezas, cuándo dar una pieza por buena y cómo meter el modelo en la maqueta. Tiene una ficha por modelo en [`modelos/`](.claude/skills/vespino-blender/modelos/mortadelo.md), para cuando lleguen más Vespinos.
+
+La primera dice **cómo** modelar y la segunda **qué**. En [`skills/README.md`](skills/README.md) explico cómo instalarlas.
 
 ## De dónde salen los datos
 
@@ -148,13 +152,10 @@ He intentado no inventarme nada, pero es justo que sepas qué es dato y qué es 
 - La reducción final, el tamaño de las poleas del variador y las revoluciones del embrague son estimaciones mías, no datos del manual.
 - Los textos de las piezas están escritos con lo que se sabe en general de los motores de dos tiempos.
 - En el modelo de Blender, lo que no se ve en las fotos (el interior del motor, la parte de atrás) está colocado según la ficha y la lógica mecánica.
-- La tienda está dibujada por código, inspirada en las fotos de un local. No uso esas fotos ni sus carteles.
 
 ## Agradecimientos
 
-Otra vez, gracias a **[elvarofficial](https://github.com/elvarofficial)** por la skill [teardown](https://github.com/elvarofficial/teardown). El motor de escena, las capturas, el recorrido automático y la forma de montar el simulador son suyos. Un trabajazo.
-
-Esa skill, a su vez, usa [claude-motion](https://github.com/whaleyxbt/claude-motion) (licencia MIT).
+Otra vez, gracias a **[elvarofficial](https://github.com/elvarofficial)** por la skill [teardown](https://github.com/elvarofficial/teardown). El motor de escena, las capturas, el recorrido automático y la forma de montar el simulador son suyos. Un trabajazo. Esa skill, a su vez, usa [claude-motion](https://github.com/whaleyxbt/claude-motion) (licencia MIT).
 
 Y gracias a la gente de [vespinos.org](https://vespinos.org), [vespinos.com](https://www.vespinos.com), [Vespinarium](http://vespinarium.blogspot.com) y [gaviras.com](https://gaviras.com). Comparten fotos y fichas de sus Vespinos, y sin ellas el modelo de Blender no habría sido posible.
 
