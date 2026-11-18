@@ -173,3 +173,13 @@ test('la moto está en la tienda y en conducción sale a la carretera', async ()
   await until(() => window.LIVE.st.env() === 'shop');
   assert.deepEqual(errors, []);
 });
+
+test('el espejo va en el lado izquierdo del piloto (la correa va a la derecha, en +z)', async () => {
+  const r = await page.evaluate(() => {
+    const b = window.LIVE.st.bike;
+    const z = (id) => { const x = b.partBox(id); return [x.min.z, x.max.z]; };
+    return { espejo: z('espejos'), correa: z('cubierta-correa') };
+  });
+  assert.ok(r.correa[0] > 0, `correa en +z: ${r.correa}`);
+  assert.ok(r.espejo[1] < 0, `espejo en -z: ${r.espejo}`);
+});

@@ -53,9 +53,9 @@ for k in range(9):
     d = qh@Vector((math.cos(2*math.pi*k/9), math.sin(2*math.pi*k/9), 0))
     path_tube(bm, [hc+hf*0.031*math.cos(t)+d*0.031*math.sin(t) for t in [i*0.12 for i in range(1,11)]], 0.0025, seg=6)
 put("claxon", bm, "direccion", [CR]); set_origin("claxon", PIV)
-# ---- espejo redondo en el lado derecho (no sale en las fotos de catálogo; la maqueta lo pide)
+# ---- espejo redondo en el lado izquierdo del piloto (+Y), como en el Mortadelo
 # alto oficial 1,04 m: el espejo queda por debajo del faro (centro a +0,035 sobre el puño)
-ms = top+Vector((-0.065,-0.22,0.012)); me_ = ms+Vector((0.012,-0.03,0.04))
-bm = bmesh.new(); path_tube(bm, catmull([ms, ms+Vector((0.004,-0.025,0.025)), me_], 5), 0.0045, seg=8)
+ms = top+Vector((-0.065,0.22,0.012)); me_ = ms+Vector((0.012,0.03,0.04))
+bm = bmesh.new(); path_tube(bm, catmull([ms, ms+Vector((0.004,0.025,0.025)), me_], 5), 0.0045, seg=8)
 tube(bm, me_+Vector((0.008,0,0)), me_+Vector((-0.01,0,0)), 0.038, seg=32)
 put("espejos", bm, "direccion", [CR]); set_origin("espejos", PIV)
