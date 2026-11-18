@@ -11,3 +11,4 @@ referencias/
 # complemento MCP de Blender y copias de seguridad
 addon.py
 *.blend1
+blender/cmp_*.png
