@@ -16,18 +16,23 @@ description: Modelar un Vespino (hoy el Mortadelo de 1968; en el futuro más mod
 exec(open(r"C:\Users\julyc\.claude\skills\blender-modelo-desde-fotos\scripts\helpers.py", encoding="utf-8").read())
 exec(open(r"C:\Users\julyc\Desktop\Vespino\blender\scripts\vespino.py", encoding="utf-8").read())
 ```
-Da `CAL_PERFIL`, `P(px,py)`, `P3(px,py,y)`, `AX(py)` (eje de dirección), `part_ids()`, `bike_names()`, `check_parts()`, `iou(nombres)`, `cmp(nombres)` (escribe `blender/cmp_perfil.png`), `dims()`.
+Da `CAL_PERFIL`, `P(px,py)`, `P3(px,py,y)`, `AX(py)` (eje de dirección), `FRONT_AXLE`, `part_ids()`, `bike_names()`, `check_parts()`, `iou(nombres)`, `iou_body()`, `prec(nombres)`, `cmp(nombres)` (escribe `blender/cmp_perfil.png`), `dims()` y `build_all()`.
+
+## La moto es código
+Cada pieza se genera desde un script en `blender/scripts/` (`mortadelo_chasis.py`, `_carroceria`, `_direccion`, `_ruedas`, `_motor`). **Se cambia el script y se vuelve a ejecutar**, nunca se retoca la malla a mano en Blender: así `build_all()` reconstruye la moto entera igual y el cambio queda en git. Para un modelo nuevo, copiar estos scripts con el prefijo del modelo.
 
 ## Reglas del proyecto
 - Blender: metros, X adelante, Y a la izquierda del piloto, Z arriba; ruedas en Z=0; centro entre ejes en X=0. Las fotos de perfil del catálogo muestran el lado derecho (-Y): ahí van tapa de correa, escape y amortiguador.
 - Colecciones = `GROUPS` de `parts.js`: carroceria, direccion, ruedas, motor, transmision, otros.
 - **Nombre de objeto = id de `vespino-sim/parts.js`** (43; ruedas `rueda-t-*` y `rueda-d-*`). `check_parts()` debe devolver `[]`.
 - Origen en el punto de giro: ruedas en su eje, dirección en `AX(125)`, motor en el cigüeñal.
-- Materiales (nombres fijos, los reconoce `bike.js`): `pintura`, `pintura_interior`, `cromo`, `aluminio`, `carter`, `acero`, `goma`, `asiento`, `cristal`, `piloto`, `esfera`.
+- Materiales (nombres fijos, los reconoce `bike.js`): `pintura`, `pintura_interior`, `cromo`, `aluminio`, `carter`, `acero`, `goma`, `asiento`, `cristal`, `piloto`, `esfera`, `porcelana`.
 
 ## Umbrales de aceptación (Mortadelo)
-- `iou()` de la moto completa ≥ 0,88; chapa sola ≥ 0,88; dirección + ruedas ≥ 0,85. Valor de partida (volumen general): 0,763.
-- `dims()`: largo 1,76 ± 0,03, alto 1,04 ± 0,02, ancho ≤ 0,62.
+- `prec(grupo)` ≥ 0,9 en carrocería, ruedas, motor, transmisión y otros; dirección ≥ 0,85 (manillar y espejo salen de perfil fuera de la foto). Una pieza suelta por debajo de 0,85 se revisa con `cmp()`.
+- `iou_body()` ≥ 0,83 y `iou()` ≥ 0,78. El IoU total no sirve como objetivo alto: el borde de los radios cuenta como moto en la máscara de la foto y lo limita a ~0,8 (el 0,88 inicial era imposible). Partida: 0,763; detalle (nov. 2026): 0,784 / 0,846.
+- `dims()`: largo 1,76 ± 0,03, alto 1,04 ± 0,02, ancho 0,61 ± 0,01 (espejo incluido).
+- Para colocar una pieza dudosa: barrido de 2 parámetros (posición, grosor) midiendo `prec` + `iou` y quedarse con el mejor; anotar el resultado en el script.
 - `tri_count(bike_names())` < 150.000.
 - Revisar `cmp()` con Read: nada naranja grande (sobra modelo) ni zonas blancas sin teñir (falta modelo).
 

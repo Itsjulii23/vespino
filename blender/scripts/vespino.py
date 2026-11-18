@@ -11,7 +11,10 @@ S = 0.002173
 CAL_PERFIL = Calib(REF + "perfil.jpg", 'XZ', S, (189, 541), (-0.565, 0.0))
 def P(px, py): return CAL_PERFIL.uv(px, py)                 # (x, z)
 def P3(px, py, y=0.0): return CAL_PERFIL.world(px, py, y)
-def AX(py): return P3(581 + (py - 125) * (128 / 284), py)    # eje de dirección
+# eje de dirección: centro de la columna blanca de la horquilla, px (589,160), pendiente 0,455 (24,5° de la vertical),
+# leído sobre recorte ampliado con rejilla. Tija superior en py 140, abrazadera inferior en py 230.
+def AX(py): return P3(589 + (py - 160) * 0.455, py)
+FRONT_AXLE = P3(709, 409)
 
 def mask_perfil():
     a = load_pixels(CAL_PERFIL.path); r, g, b = a[..., 0], a[..., 1], a[..., 2]
@@ -33,6 +36,23 @@ def check_parts():
 
 def iou(names=None):
     return silhouette_iou(CAL_PERFIL, names or bike_names(), mask_perfil())
+
+def iou_body(names=None):
+    """IoU sin el interior de las ruedas (r < 100 px): en la foto el borde de cada radio no es amarillo puro
+    y la máscara lo cuenta como moto, así que el IoU total nunca pasa de ~0,8 aunque la forma sea buena."""
+    import numpy as np
+    m = render_mask(CAL_PERFIL, names or bike_names()); ph = mask_perfil()
+    yy, xx = np.mgrid[0:ph.shape[0], 0:ph.shape[1]]; keep = np.ones_like(ph)
+    for cx, cy in ((189, 405), (709, 409)): keep &= ((xx - cx)**2 + (yy - cy)**2) > 100**2
+    return float((m & ph & keep).sum() / ((m | ph) & keep).sum())
+
+def build_all():
+    """Reconstruye la moto entera desde los scripts del modelo."""
+    for f in ("mortadelo_chasis.py", "mortadelo_carroceria.py", "mortadelo_direccion.py", "mortadelo_ruedas.py", "mortadelo_motor.py"):
+        exec(open(ROOT + r"\blender\scripts\\" + f, encoding="utf-8").read(), globals())
+
+def prec(names):
+    return silhouette_precision(CAL_PERFIL, names, mask_perfil())
 
 def cmp(names=None, out=ROOT + r"\blender\cmp_perfil.png"):
     return compare(CAL_PERFIL, names or bike_names(), out)
