@@ -27,6 +27,7 @@ Si una pieza te llama la atención, en su ficha tienes el botón **Examinar en 3
 ### Arrancarlo
 
 - **Puño del acelerador** (abajo a la derecha): arrástralo hacia arriba y el motor sube de vueltas. Cuanto más lo giras, más fuerte suena. Al soltarlo vuelve solo al ralentí, como uno de verdad.
+- **Sonido**: no es una grabación, es un modelo de cómo hace ruido un dos tiempos. Dispara una vez por vuelta, el escape y el silenciador le dan su timbre, a ralentí va a golpes irregulares (el «ponpón» de siempre) y con el gas abierto se afina y se abre.
 - **Humo del escape**: sale a bocanadas, al ritmo de las explosiones. Si aceleras sale más espeso, y si vas en marcha se queda atrás.
 - **Luces**: el botón **Luces** enciende el faro, que ilumina el suelo, y el piloto de atrás.
 - **Conducción**: la moto sale de la tienda a la carretera y el variador va cambiando de marcha solo.
@@ -111,6 +112,7 @@ vespino-sim/        el código de la maqueta
   stage.js          escena, luces y calidad
   shop.js           la tienda donde está aparcada
   smoke.js          el humo del escape
+  engine-sound.js   el sonido del motor
   grip.js           el puño del acelerador
   inspect.js        el visor para examinar una pieza
   console.js        la interfaz
@@ -129,7 +131,7 @@ Hace falta la skill [teardown](https://github.com/elvarofficial/teardown) y Node
 
 ```
 node "<ruta-de-teardown>/sims/build.mjs" ./vespino-sim
-node --test vespino-sim/tests/glb.test.mjs vespino-sim/tests/page.test.mjs
+node --test vespino-sim/tests/glb.test.mjs vespino-sim/tests/sound.test.mjs vespino-sim/tests/page.test.mjs
 ```
 
 La compilación sale en `teardown-out/dist/vespino-sim.html`. El modelo va metido dentro del HTML, por eso la página sigue funcionando sin internet.

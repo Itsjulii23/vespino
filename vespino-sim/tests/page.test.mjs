@@ -183,3 +183,15 @@ test('el espejo va en el lado izquierdo del piloto (la correa va a la derecha, e
   assert.ok(r.correa[0] > 0, `correa en +z: ${r.correa}`);
   assert.ok(r.espejo[1] < 0, `espejo en -z: ${r.espejo}`);
 });
+
+test('el botón Sonido genera audio de verdad (no silencio) y se calla al apagarlo', async () => {
+  await page.evaluate(() => window.LIVE.set({ tab: 'v', sel: null, play: 6, pause: false, rpm: 4500 }));
+  await page.getByText('Sonido', { exact: true }).click();
+  await until(() => window.LIVE.audio && window.LIVE.audio.kind !== 'pending' && window.LIVE.audio.ctx.state === 'running');
+  await until(() => window.LIVE.audio.rms() > 0.02);
+  const kind = await page.evaluate(() => window.LIVE.audio.kind);
+  assert.ok(['worklet', 'script'].includes(kind), `motor de audio: ${kind}`);
+  await page.getByText('Sonido', { exact: true }).click();
+  await until(() => window.LIVE.audio.rms() < 0.002);
+  assert.deepEqual(errors, []);
+});

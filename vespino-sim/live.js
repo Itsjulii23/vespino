@@ -6,6 +6,7 @@ import {CAMS, createConsole, CUTS, OVERLAYS, RPM_MAX, RPM_MIN} from './console.j
 import {crankcase, drive, exOpen, inOpen, phaseOf, pressure, trOpen} from './kin.js';
 import {ORDER, PARTS} from './parts.js';
 import {createStage} from './stage.js';
+import {createEngineAudio} from './engine-sound.js';
 import {createGrip} from './grip.js';
 import {createInspector} from './inspect.js';
 
@@ -559,72 +560,18 @@ export function runLive() {
     }
   });
   let au = null;
+  // the engine's sound is synthesised from how a two-stroke makes noise (engine-sound.js)
   const audioStart = () => {
-    const Ctx = window.AudioContext || window.webkitAudioContext;
-    if (!Ctx) return;
-    const ctx = new Ctx();
-    const master = ctx.createGain();
-    master.gain.value = 0;
-    master.connect(ctx.destination);
-    const lp = ctx.createBiquadFilter();
-    lp.type = 'lowpass';
-    lp.connect(master);
-    const osc = (type, g) => {
-      const o = ctx.createOscillator();
-      o.type = type;
-      const gg = ctx.createGain();
-      gg.gain.value = g;
-      o.connect(gg);
-      gg.connect(lp);
-      o.start();
-      return o;
-    };
-    const o1 = osc('sawtooth', 0.5);
-    const o2 = osc('square', 0.3);
-    const o3 = osc('sawtooth', 0.18);
-    const buf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
-    const d = buf.getChannelData(0);
-    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-    const nz = ctx.createBufferSource();
-    nz.buffer = buf;
-    nz.loop = true;
-    const bp = ctx.createBiquadFilter();
-    bp.type = 'bandpass';
-    bp.Q.value = 0.7;
-    const gn = ctx.createGain();
-    gn.gain.value = 0.3;
-    nz.connect(bp);
-    bp.connect(gn);
-    gn.connect(lp);
-    nz.start();
-    // the exhaust beat: the noise is chopped at the firing rate, harder the more the throttle is open
-    const lfo = ctx.createOscillator();
-    lfo.type = 'square';
-    const depth = ctx.createGain();
-    depth.gain.value = 0;
-    lfo.connect(depth);
-    depth.connect(gn.gain);
-    lfo.start();
-    au = {ctx, master, lp, o1, o2, o3, bp, gn, lfo, depth};
+    au = createEngineAudio();
   };
   const audioUpdate = (rpmNow, active, load = 0) => {
     if (!au) return;
-    const t = au.ctx.currentTime;
-    const f = Math.max(25, rpmNow / 60);
-    au.o1.frequency.setTargetAtTime(f, t, 0.05);
-    au.o2.frequency.setTargetAtTime(f * 2, t, 0.05);
-    au.o3.frequency.setTargetAtTime(f * 4, t, 0.05);
-    au.lp.frequency.setTargetAtTime(500 + rpmNow * 0.35, t, 0.1);
-    au.bp.frequency.setTargetAtTime(400 + rpmNow * 0.2, t, 0.1);
-    au.lfo.frequency.setTargetAtTime(f, t, 0.05);
-    au.depth.gain.setTargetAtTime(0.1 + 0.35 * load, t, 0.05);
-    au.gn.gain.setTargetAtTime(0.18 + 0.3 * load, t, 0.08);
-    au.master.gain.setTargetAtTime(active ? 0.04 + 0.08 * clamp((rpmNow - 1500) / 5500, 0, 1) + 0.06 * load : 0, t, 0.06);
+    au.set(rpmNow, load, active ? 0.8 + 0.2 * load : 0);
   };
   const soundOnNow = () => {
     soundOn = true;
     if (!au) audioStart();
-    if (au) au.ctx.resume();
+    if (au) au.resume();
   };
   ui.btn.sound.addEventListener('click', () => {
     takeOver();
@@ -856,7 +803,9 @@ export function runLive() {
   };
   // every shader compiles at once off the main thread before the first frame
   warmComposer(st.renderer, st.composer, st.scene, st.camera).then(() => requestAnimationFrame(frame));
-  window.LIVE = {st, cam, startTour, takeOver, setView, inspector, smoke: st.smoke, grip, get rpm() {
+  window.LIVE = {st, cam, startTour, takeOver, setView, inspector, get audio() {
+    return au;
+  }, smoke: st.smoke, grip, get rpm() {
     return rpm;
   }, get sound() {
     return soundOn;
