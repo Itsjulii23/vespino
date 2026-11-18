@@ -6,6 +6,8 @@ import {CAMS, createConsole, CUTS, OVERLAYS, RPM_MAX, RPM_MIN} from './console.j
 import {crankcase, drive, exOpen, inOpen, phaseOf, pressure, trOpen} from './kin.js';
 import {ORDER, PARTS} from './parts.js';
 import {createStage} from './stage.js';
+import {createGrip} from './grip.js';
+import {createInspector} from './inspect.js';
 
 let W = 1600;
 const H = 900;
@@ -238,6 +240,8 @@ export function runLive() {
   let driveOn = false;
   let driveT0 = 0;
   let soundOn = false;
+  let lightsOn = false;
+  const IDLE_RPM = 1800;
   const setHash = (s) => {
     try {
       history.replaceState(null, '', s ? '#' + s : location.pathname + location.search);
@@ -462,7 +466,12 @@ export function runLive() {
     if (e.altKey || e.ctrlKey || e.metaKey) return;
     const key = e.key.toLowerCase();
     takeOver();
+    if (inspector.isOpen) {
+      if (key === 'escape') inspector.close();
+      return;
+    }
     if (key === 'escape') deselect();
+    else if (key === 'l') setLights(!lightsOn);
     else if (KEYS[key]) setView(KEYS[key]);
     else if (key === ' ') paused = !paused;
     else if (key === 'h') hidden = !hidden;
@@ -588,9 +597,17 @@ export function runLive() {
     bp.connect(gn);
     gn.connect(lp);
     nz.start();
-    au = {ctx, master, lp, o1, o2, o3, bp};
+    // the exhaust beat: the noise is chopped at the firing rate, harder the more the throttle is open
+    const lfo = ctx.createOscillator();
+    lfo.type = 'square';
+    const depth = ctx.createGain();
+    depth.gain.value = 0;
+    lfo.connect(depth);
+    depth.connect(gn.gain);
+    lfo.start();
+    au = {ctx, master, lp, o1, o2, o3, bp, gn, lfo, depth};
   };
-  const audioUpdate = (rpmNow, active) => {
+  const audioUpdate = (rpmNow, active, load = 0) => {
     if (!au) return;
     const t = au.ctx.currentTime;
     const f = Math.max(25, rpmNow / 60);
@@ -599,15 +616,55 @@ export function runLive() {
     au.o3.frequency.setTargetAtTime(f * 4, t, 0.05);
     au.lp.frequency.setTargetAtTime(500 + rpmNow * 0.35, t, 0.1);
     au.bp.frequency.setTargetAtTime(400 + rpmNow * 0.2, t, 0.1);
-    au.master.gain.setTargetAtTime(active ? 0.05 + 0.1 * clamp((rpmNow - 1500) / 5500, 0, 1) : 0, t, 0.08);
+    au.lfo.frequency.setTargetAtTime(f, t, 0.05);
+    au.depth.gain.setTargetAtTime(0.1 + 0.35 * load, t, 0.05);
+    au.gn.gain.setTargetAtTime(0.18 + 0.3 * load, t, 0.08);
+    au.master.gain.setTargetAtTime(active ? 0.04 + 0.08 * clamp((rpmNow - 1500) / 5500, 0, 1) + 0.06 * load : 0, t, 0.06);
+  };
+  const soundOnNow = () => {
+    soundOn = true;
+    if (!au) audioStart();
+    if (au) au.ctx.resume();
   };
   ui.btn.sound.addEventListener('click', () => {
     takeOver();
     pulseBtn('sound');
     soundOn = !soundOn;
-    if (soundOn && !au) audioStart();
-    if (au) au.ctx.resume();
+    if (soundOn) soundOnNow();
   });
+  // lights
+  const setLights = (on) => {
+    lightsOn = on;
+    st.bike.lights.set(on);
+  };
+  ui.btn.lights.addEventListener('click', () => {
+    takeOver();
+    pulseBtn('lights');
+    setLights(!lightsOn);
+  });
+  // the throttle grip: holding it drives the revs and switches the sound on
+  const grip = createGrip(ui.centre, {
+    left: 1050,
+    top: 742,
+    onStart: () => {
+      takeOver();
+      lastInput = T;
+      paused = false;
+      if (!soundOn) soundOnNow();
+    },
+    onChange: (k, held) => {
+      lastInput = T;
+      rpmTarget = held || k > 0 ? RPM_MIN + k * (RPM_MAX - RPM_MIN) : IDLE_RPM;
+    },
+  });
+  // the part viewer
+  const inspector = createInspector(st.renderer, st.scene.environment);
+  const openInspector = (id) => {
+    if (!id || !st.bike.partMeshes[id]) return;
+    takeOver();
+    inspector.show(id, st.bike.partMeshes[id], PARTS[id]);
+  };
+  ui.btn.inspect.addEventListener('click', () => openInspector(sel));
   if (innerWidth < 900) {
     hidden = true;
     const mb = document.createElement('div');
@@ -698,7 +755,7 @@ export function runLive() {
     if (driveOn && !AP.on) {
       lastInput = T;
       const c = (T - driveT0) % 40;
-      rpmTarget = c < 4 ? 1800 : c < 12 ? 1800 + ((c - 4) / 8) * 4000 : c < 22 ? 5800 : c < 26 ? 4200 : c < 32 ? 4200 - ((c - 26) / 6) * 2200 : 1800;
+      if (!grip.held()) rpmTarget = c < 4 ? 1800 : c < 12 ? 1800 + ((c - 4) / 8) * 4000 : c < 22 ? 5800 : c < 26 ? 4200 : c < 32 ? 4200 - ((c - 26) / 6) * 2200 : 1800;
       const msg = c < 4 ? 'Ralentí: el embrague está abierto y la moto no avanza' : c < 12 ? 'Acelerando: el variador cierra la polea y sube de marcha' : c < 22 ? 'Crucero: marcha larga, el motor va desahogado' : c < 26 ? 'Cuesta: el variador baja de marcha para dar más fuerza' : c < 32 ? 'Frenando: el motor baja de vueltas' : 'Parada: vuelta al ralentí';
       if (driveChip.firstChild.textContent !== msg) driveChip.firstChild.textContent = msg;
     }
@@ -709,7 +766,10 @@ export function runLive() {
       const len = a1 - a0;
       th -= len * Math.floor((th - a0) / len);
     }
-    audioUpdate(rpm, soundOn && !paused && play >= 0.5);
+    // how hard the engine is working: the grip's opening, or how far the revs still have to climb
+    const load = grip.held() ? grip.value() : clamp((rpmTarget - rpm) / 2500, 0, 0.8) + 0.2 * clamp(rpm / RPM_MAX, 0, 1);
+    audioUpdate(rpm, soundOn && !paused && (play >= 0.5 || grip.held()), load);
+    grip.update(clamp((rpm - RPM_MIN) / (RPM_MAX - RPM_MIN), 0, 1));
 
     const k = 1 - Math.exp(-dt / (AP.on ? 0.22 : 0.45));
     cam.az += wrap(tgt.az - cam.az) * k;
@@ -741,7 +801,10 @@ export function runLive() {
     // the road rolls by at the wheel's own speed
     dist += dr.kmh / 3.6 * dt * (paused ? 0 : play);
     st.road(dist);
-    st.frame({...cam, az: cam.az * D2R, el: cam.el * D2R});
+    st.setEnv(driveOn && !AP.on ? 'road' : 'shop');
+    st.smoke.update(paused ? 0 : dt, {rpm, load, wind: driveOn ? (dr.kmh / 3.6) * play : 0, on: out.escape < 0.5 && expK < 0.05});
+    if (inspector.isOpen) inspector.render(dt, st.size.w, st.size.h);
+    else st.frame({...cam, az: cam.az * D2R, el: cam.el * D2R});
 
     // callouts
     const vis = ss(1.1, 1.8, since) * (ov.callouts ? 1 : 0) * (sel || focus || driveOn || expK > 0.04 || ui.tab === 'q' ? 0 : 1);
@@ -750,7 +813,7 @@ export function runLive() {
       const at = st.project(st.bike.anchors[key]);
       if (at) callouts.push({name, sub, at, label: [label[0] + (W - 1600) / 2, label[1]], w, o: vis});
     }
-    ui.root.style.display = hidden ? 'none' : '';
+    ui.root.style.display = hidden || inspector.isOpen ? 'none' : '';
     for (const n of ui.root.querySelectorAll('[data-g="charge"]')) n.style.visibility = ov.charge ? '' : 'hidden';
     for (const n of ui.root.querySelectorAll('[data-g="charts"]')) n.style.visibility = ov.charts ? '' : 'hidden';
     const uiState = {
@@ -763,6 +826,7 @@ export function runLive() {
       paused,
       drive: driveOn,
       sound: soundOn,
+      lights: lightsOn,
       sel,
       outT,
       explode: expK,
@@ -792,7 +856,11 @@ export function runLive() {
   };
   // every shader compiles at once off the main thread before the first frame
   warmComposer(st.renderer, st.composer, st.scene, st.camera).then(() => requestAnimationFrame(frame));
-  window.LIVE = {st, cam, startTour, takeOver, setView, get tier() {
+  window.LIVE = {st, cam, startTour, takeOver, setView, inspector, smoke: st.smoke, grip, get rpm() {
+    return rpm;
+  }, get sound() {
+    return soundOn;
+  }, get tier() {
     return tier;
   }, get T() {
     return T;
@@ -810,6 +878,9 @@ export function runLive() {
       Object.assign(off, {az: 0, el: 0, k: 1});
     }
     if (o.explode !== undefined) expT = o.explode;
+    if (o.lights !== undefined) setLights(o.lights);
+    if (o.inspect !== undefined) o.inspect ? openInspector(o.inspect) : inspector.close();
+    if (o.throttle !== undefined) grip.set(o.throttle);
     if (o.out) for (const k of o.out) outT[k] = 1;
     if (o.tab) {
       ui.setTab(o.tab);

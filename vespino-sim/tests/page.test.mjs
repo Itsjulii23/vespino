@@ -18,9 +18,10 @@ let browser, page;
 const errors = [];
 before(async () => {
   browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
-  const ctx = await browser.newContext({ viewport: { width: 1600, height: 900 } });
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 720 } });
   await ctx.route('**', (r) => (r.request().url().startsWith('file:') || r.request().url().startsWith('data:') ? r.continue() : r.abort()));
   page = await ctx.newPage();
+  page.setDefaultTimeout(150000);
   page.on('pageerror', (e) => errors.push(String(e)));
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
   await page.goto(pathToFileURL(PAGE).href);
@@ -81,4 +82,94 @@ test('cotas del Mortadelo: 1,13 m entre ejes, correa en sus poleas, pistón dent
   const zone = { min: [Math.min(r.cil.min[0], r.culata.min[0]) - 0.01, Math.min(r.cil.min[1], r.culata.min[1]) - 0.01], max: [Math.max(r.cil.max[0], r.culata.max[0]) + 0.01, Math.max(r.cil.max[1], r.culata.max[1]) + 0.01] };
   const pc = [(r.piston.min[0] + r.piston.max[0]) / 2, (r.piston.min[1] + r.piston.max[1]) / 2];
   assert.ok(pc[0] > zone.min[0] && pc[0] < zone.max[0] && pc[1] > zone.min[1] && pc[1] < zone.max[1], `pistón en ${pc}`);
+});
+
+// ---------------------------------------------------------------- visor: examinar, humo, puño, luces, tienda
+const wait = (ms) => page.waitForTimeout(ms);
+
+test('examinar en 3D abre la pieza sola, la gira en cualquier eje y se cierra', async () => {
+  await page.evaluate(() => window.LIVE.set({ tab: 'p', sel: 'carburador' }));
+  await page.getByText('Examinar en 3D', { exact: true }).click();
+  await wait(1500);
+  const r = await page.evaluate(() => ({ open: window.LIVE.inspector.isOpen, n: window.LIVE.inspector.meshCount(), id: window.LIVE.inspector.id }));
+  assert.equal(r.open, true);
+  assert.equal(r.id, 'carburador');
+  assert.ok(r.n > 0, `mallas en el visor: ${r.n}`);
+  const box = await page.locator('#inspect-canvas-hit').boundingBox();
+  const q0 = await page.evaluate(() => window.LIVE.inspector.quat());
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2 + 60, box.y + box.height / 2 + 90, { steps: 6 });
+  await page.mouse.up();
+  const q1 = await page.evaluate(() => window.LIVE.inspector.quat());
+  // un arrastre en diagonal gira a la vez sobre el eje vertical y el horizontal: cambian x e y del cuaternión
+  assert.ok(Math.abs(q1[0] - q0[0]) > 0.05 && Math.abs(q1[1] - q0[1]) > 0.05, `giro ${q0} -> ${q1}`);
+  await page.keyboard.press('Escape');
+  await wait(300);
+  assert.equal(await page.evaluate(() => window.LIVE.inspector.isOpen), false);
+  assert.deepEqual(errors, []);
+});
+
+test('el botón Luces enciende el faro y el piloto', async () => {
+  await page.evaluate(() => window.LIVE.set({ tab: 'v', sel: null }));
+  const off = await page.evaluate(() => window.LIVE.st.bike.lights.state());
+  await page.getByText('Luces', { exact: true }).click();
+  await wait(400);
+  const on = await page.evaluate(() => window.LIVE.st.bike.lights.state());
+  assert.equal(off.spot, 0);
+  assert.ok(on.spot > 1, `foco ${on.spot}`);
+  assert.ok(on.lens > 0.8 && on.tail > 0.8, `cristal ${on.lens}, piloto ${on.tail}`);
+  await page.getByText('Luces', { exact: true }).click();
+});
+
+const until = (fn, arg) => page.waitForFunction(fn, arg, { timeout: 150000, polling: 100 });
+
+// avanza la simulación al menos `sec` segundos de tiempo de la página (en SwiftShader cada frame puede tardar casi un segundo)
+const simWait = async (sec) => {
+  const t0 = await page.evaluate(() => window.LIVE.T);
+  await until((t) => window.LIVE.T > t, t0 + sec);
+};
+
+test('el escape echa más humo cuanto más se acelera', async () => {
+  await page.evaluate(() => window.LIVE.set({ rpm: 1500, pause: false }));
+  await simWait(2);
+  const idle = await page.evaluate(() => window.LIVE.smoke.density());
+  await page.evaluate(() => window.LIVE.set({ rpm: 6800 }));
+  await simWait(2);
+  const full = await page.evaluate(() => window.LIVE.smoke.density());
+  assert.ok(idle > 0, `humo al ralentí ${idle}`);
+  assert.ok(full > idle * 1.5, `humo ${idle} -> ${full}`);
+  await page.evaluate(() => window.LIVE.set({ rpm: 1800 }));
+});
+
+test('el puño sube las vueltas según lo que se gira y al soltarlo vuelve al ralentí', async () => {
+  const g = await page.locator('#grip').boundingBox();
+  const cx = g.x + g.width / 2;
+  const cy = g.y + g.height / 2;
+  await page.mouse.move(cx, cy);
+  await page.mouse.down();
+  // un 20 % de la altura del puño es menos de un tercio de gas: unas 3000 vueltas
+  await page.mouse.move(cx, cy - g.height * 0.2, { steps: 4 });
+  await until(() => window.LIVE.rpm > 2600);
+  await page.waitForTimeout(1500);
+  const half = await page.evaluate(() => window.LIVE.rpm);
+  await page.mouse.move(cx, cy - g.height, { steps: 4 });
+  await until(() => window.LIVE.rpm > 5500);
+  const snd = await page.evaluate(() => window.LIVE.sound);
+  const k = await page.evaluate(() => window.LIVE.grip.value());
+  await page.mouse.up();
+  assert.ok(half > 2000 && half < 4200, `medio gas: ${half}`);
+  assert.equal(k, 1, 'a fondo el puño está abierto del todo');
+  assert.equal(snd, true, 'el puño enciende el sonido');
+  assert.equal(await page.evaluate(() => window.LIVE.grip.value()), 0, 'al soltarlo el muelle lo cierra');
+  await until(() => window.LIVE.rpm < 2300);
+});
+
+test('la moto está en la tienda y en conducción sale a la carretera', async () => {
+  assert.equal(await page.evaluate(() => window.LIVE.st.env()), 'shop');
+  await page.getByText('Conducción', { exact: true }).click();
+  await until(() => window.LIVE.st.env() === 'road');
+  await page.getByText('Conducción', { exact: true }).click();
+  await until(() => window.LIVE.st.env() === 'shop');
+  assert.deepEqual(errors, []);
 });

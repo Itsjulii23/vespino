@@ -48,6 +48,10 @@ const SEAT = std({color: '#17181a', metalness: 0, roughness: 0.5});
 const BELT = std({color: '#2a2b2e', metalness: 0.1, roughness: 0.7, side: THREE.DoubleSide});
 const RED = std({color: '#b01a24', metalness: 0.2, roughness: 0.4, emissive: '#6a0a10', emissiveIntensity: 0.5});
 const GLASS = new THREE.MeshPhysicalMaterial({color: '#cfe8ff', metalness: 0, roughness: 0.05, transparent: true, opacity: 0.16, depthWrite: false, side: THREE.DoubleSide});
+GLASS.userData.keep = true; // stays glass in the part viewer
+// the lamp glass and the tail lens: they glow when the lights are on
+const LAMP = new THREE.MeshPhysicalMaterial({color: '#f6f3e8', metalness: 0, roughness: 0.08, transmission: 0, emissive: '#fff2cc', emissiveIntensity: 0.05});
+const TAIL = std({color: '#a3141c', metalness: 0.1, roughness: 0.3, emissive: '#ff1e12', emissiveIntensity: 0.1});
 const PORTM = std({color: '#2c2f35', metalness: 0.2, roughness: 0.8});
 const gasMat = () => new THREE.MeshStandardMaterial({color: '#3d8fe0', roughness: 0.5, transparent: true, opacity: 0.55, depthWrite: false, emissive: '#000000', emissiveIntensity: 0.5});
 // materials that become glass or hollow in the cutaway modes
@@ -68,6 +72,8 @@ SHELLS.push(CHROME_S, DARK_S);
 const glbMat = (id, m) => {
   const sh = SHELL_PARTS.has(id);
   const map = {pintura: GREEN, pintura_interior: GREEN2, cromo: sh ? CHROME_S : CHROME, aluminio: ENGINE_CAST.has(id) ? CAST : ALU, carter: CASE, acero: sh ? CHROME_S : STEEL, goma: sh ? DARK_S : RUBBER, asiento: SEAT};
+  if (id === 'faro' && m.name === 'cristal') return LAMP;
+  if (id === 'piloto' && m.name === 'piloto') return TAIL;
   return map[m.name] || m;
 };
 const glb = (id, parent) => {
@@ -247,6 +253,36 @@ export function buildBike() {
   dialG.traverse((o) => (o.userData.part = 'velocimetro'));
   front.add(dialG);
   P(null);
+
+  // ---------------------------------------------------------- lights: the headlamp throws a beam on the floor, the tail glows
+  const lights = (() => {
+    const spot = new THREE.SpotLight('#ffe9c2', 0, 9, 0.42, 0.55, 1.4);
+    spot.position.set(0.915, 0.97, 0);
+    spot.target.position.set(3.2, 0, 0);
+    const beamMat = new THREE.MeshBasicMaterial({color: '#fff3d6', transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false});
+    const beam = new THREE.Mesh(new THREE.ConeGeometry(0.42, 1.4, 32, 1, true).translate(0, -0.7, 0).rotateZ(Math.PI / 2 - 0.4), beamMat);
+    beam.position.copy(spot.position);
+    beam.raycast = () => {};
+    const tail = new THREE.PointLight('#ff2a1a', 0, 1.4, 2);
+    tail.position.set(-0.21, 0.62, 0);
+    front.add(spot, spot.target, beam);
+    body.add(tail);
+    let on = false;
+    return {
+      set(v) {
+        on = !!v;
+        spot.intensity = on ? 14 : 0;
+        beamMat.opacity = on ? 0.03 : 0;
+        LAMP.emissiveIntensity = on ? 2.2 : 0.05;
+        TAIL.emissiveIntensity = on ? 1.6 : 0.1;
+        tail.intensity = on ? 0.5 : 0;
+      },
+      get on() {
+        return on;
+      },
+      state: () => ({spot: spot.intensity, lens: LAMP.emissiveIntensity, tail: TAIL.emissiveIntensity}),
+    };
+  })();
 
   // ---------------------------------------------------------- pedals, stand, shock, exhaust
   for (const id of ['pedales', 'amortiguador', 'caballete']) glb(id, shell);
@@ -715,5 +751,5 @@ export function buildBike() {
     return box;
   };
 
-  return {root, update, setCut, setIsolate, anchors, partMeshes, pick, partBox, setHighlight, setPaint, setPartVisible, extraMats: [hoverMat, selMat], state: st, setCharge: (on) => ((gas.visible = on), (ccGas.visible = on)), portsG, liner, caseG, castings, eng, shell};
+  return {root, update, setCut, setIsolate, anchors, partMeshes, pick, partBox, setHighlight, setPaint, setPartVisible, extraMats: [hoverMat, selMat], state: st, lights, setCharge: (on) => ((gas.visible = on), (ccGas.visible = on)), portsG, liner, caseG, castings, eng, shell};
 }

@@ -5,6 +5,8 @@ import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
 import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
 import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
 import {buildBike} from './bike.js';
+import {createShop} from './shop.js';
+import {createSmoke} from './smoke.js';
 
 const V3 = THREE.Vector3;
 export const BG = {top: '#dfe8ee', mid: '#eef0ee', low: '#d9dcd8'};
@@ -161,7 +163,7 @@ export function createStage({canvas}) {
     g.fillRect(0, 0, 128, 128);
     return new THREE.CanvasTexture(c);
   })();
-  for (const [x, w, d, o] of [[0, 0.34, 0.1, 0.55], [1.1, 0.34, 0.1, 0.55], [0.55, 1.7, 0.42, 0.3]]) {
+  for (const [x, w, d, o] of [[0, 0.34, 0.1, 0.55], [1.13, 0.34, 0.1, 0.55], [0.565, 1.7, 0.42, 0.3]]) {
     const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshBasicMaterial({map: blobTex, transparent: true, opacity: o, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -6}));
     m.rotation.x = -Math.PI / 2;
     m.position.set(x, 0.0015, 0);
@@ -199,6 +201,27 @@ export function createStage({canvas}) {
 
   const bike = buildBike();
   scene.add(bike.root);
+  const smoke = createSmoke(scene);
+
+  // where the bike stands: the shop, or the open road while riding
+  const shop = createShop();
+  scene.add(shop);
+  const roadBg = scene.background;
+  const shopBg = new THREE.Color('#aab4bb');
+  let envNow = null;
+  const setEnv = (e) => {
+    if (e === envNow) return;
+    envNow = e;
+    const r = e === 'road';
+    shop.visible = !r;
+    floor.visible = r;
+    dashes.visible = r;
+    scene.background = r ? roadBg : shopBg;
+    scene.fog.color.set(r ? '#e3e6e2' : '#aab4bb');
+    scene.fog.near = r ? 5.5 : 9;
+    scene.fog.far = r ? 15 : 26;
+  };
+  setEnv('shop');
   const clip = new THREE.Plane(new V3(0, 0, -1), 0);
 
   const size = {w: 1600, h: 900};
@@ -261,5 +284,5 @@ export function createStage({canvas}) {
     });
     for (const m of bike.extraMats) m.clippingPlanes = planes;
   };
-  return {renderer, scene, camera, composer, sun, bike, resize, frame, project, size, setQuality, setCut, road};
+  return {renderer, scene, camera, composer, sun, bike, smoke, resize, frame, project, size, setQuality, setCut, road, setEnv, env: () => envNow};
 }

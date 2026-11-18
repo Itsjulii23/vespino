@@ -171,8 +171,11 @@ export function createConsole(app) {
   let y = grid('Vista', CAMS, 200, 2);
   y = grid('Corte', CUTS, y + 4, 3, 32, 6);
   y = grid('Mostrar', OVERLAYS, y + 4, 2);
-  btn.drive = addV(`<div class="tb" style="left:${PX}px;top:${y + 2}px;width:${(PW - 7) / 2}px;height:32px">Conducción</div>`);
-  btn.sound = addV(`<div class="tb" style="left:${PX + (PW + 7) / 2}px;top:${y + 2}px;width:${(PW - 7) / 2}px;height:32px">Sonido</div>`);
+  // drive, sound and lights share one row of three
+  const w3 = (PW - 12) / 3;
+  btn.drive = addV(`<div class="tb" style="left:${PX}px;top:${y + 2}px;width:${w3}px;height:32px;font-size:12px;padding:0">Conducción</div>`);
+  btn.sound = addV(`<div class="tb" style="left:${PX + w3 + 6}px;top:${y + 2}px;width:${w3}px;height:32px;font-size:12px;padding:0">Sonido</div>`);
+  btn.lights = addV(`<div class="tb" style="left:${PX + 2 * (w3 + 6)}px;top:${y + 2}px;width:${w3}px;height:32px;font-size:12px;padding:0">Luces</div>`);
 
   // sliders: throttle and playback live under both tabs; take-apart lives in the parts tab
   const SL = {x: PX + 6, w: PW - 12};
@@ -330,7 +333,8 @@ export function createConsole(app) {
 
   // right: the detail card of the part you clicked
   mk(pcw, `<div class="pn" style="left:${RX}px;top:24px;width:${RW}px;height:852px"></div>`);
-  const pc = mk(pcw, `<div class="pc" style="position:absolute;left:${IX}px;top:44px;width:${IW}px;height:730px;overflow:hidden;pointer-events:none"></div>`);
+  const pc = mk(pcw, `<div class="pc" style="position:absolute;left:${IX}px;top:44px;width:${IW}px;height:686px;overflow:hidden;pointer-events:none"></div>`);
+  btn.inspect = mk(pcw, `<div class="tb dark" style="left:${IX}px;top:738px;width:${IW}px;height:38px;font-size:14px">Examinar en 3D</div>`);
   btn.rm = mk(pcw, `<div class="tb on" style="left:${IX}px;top:784px;width:${IW}px;height:38px;font-size:14px">Quitar pieza</div>`);
   btn.close = mk(pcw, `<div class="tb" style="left:${IX}px;top:830px;width:${IW}px;height:32px">Volver a ver toda la moto</div>`);
   pc.addEventListener('click', (e) => {
@@ -587,6 +591,7 @@ export function createConsole(app) {
       for (const k of OVERLAYS) btn[k].classList.toggle('on', !!s.overlays[k]);
       btn.drive.classList.toggle('on', !!s.drive);
       btn.sound.classList.toggle('on', !!s.sound);
+      btn.lights.classList.toggle('on', !!s.lights);
       for (const id of ORDER) {
         const it = listBtn[id];
         it.classList.toggle('sel', s.sel === id);

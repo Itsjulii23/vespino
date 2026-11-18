@@ -37,6 +37,19 @@ Además del despiece, hay siete pestañas:
 
 El motor no es decorativo: pistón, biela y cigüeñal se mueven con la cinemática real de biela-manivela, y el variador abre y cierra sus poleas según el acelerador.
 
+## La moto en la tienda
+
+La moto ya no está en un estudio vacío. Está aparcada en una tienda como la de las fotos que usé de referencia: suelo de baldosa clara, una zona de baldosa hidráulica, pared gris azulada con cuadros, una escalera con barandilla de acero y una papelera. Todo está dibujado por código, sin usar las fotos ni los carteles de la tienda. Cuando pulsas **Conducción**, la moto sale a la carretera.
+
+![La moto en la tienda con las luces encendidas](docs/tienda-luces.png)
+
+- **Puño del acelerador** (abajo a la derecha): arrástralo hacia arriba para dar gas. Cuanto más lo giras, más vueltas coge el motor y más fuerte suena. Al soltarlo vuelve solo al ralentí, como uno de verdad. La primera vez que lo tocas se enciende el sonido.
+- **Humo del escape**: sale de la punta del silenciador a golpes, al ritmo de las explosiones. Al acelerar sale más espeso. Cuando vas en marcha, el aire lo deja atrás.
+- **Luces**: el botón **Luces** (o la tecla **L**) enciende el faro, que ilumina el suelo, y el piloto trasero.
+- **Examinar en 3D**: en la ficha de cualquier pieza hay un botón que la saca sola a pantalla completa. Puedes girarla en cualquier dirección arrastrando, acercarte con la rueda, ponerla de frente, de lado o desde arriba, o dejar que gire sola.
+
+![Examinar una pieza en 3D](docs/examinar-pieza.png)
+
 Si quieres leer sobre las piezas sin abrir la maqueta, está el **[catálogo de las 43 piezas](docs/PIEZAS.md)**.
 
 <details>
@@ -55,7 +68,7 @@ Si quieres leer sobre las piezas sin abrir la maqueta, está el **[catálogo de 
 
 - **Arrastra** para girar la moto y usa la **rueda del ratón** para acercarte.
 - **Clic** en una pieza para ver su ficha, **doble clic** para quitarla y **Esc** para volver.
-- Las teclas **1 a 6** cambian de cámara y **H** esconde los paneles.
+- Las teclas **1 a 6** cambian de cámara, **L** enciende las luces y **H** esconde los paneles.
 - La dirección de la página cambia al elegir una pieza o una pestaña (por ejemplo `#pieza=carter`), así que puedes copiar el enlace y compartir justo lo que estás viendo.
 - En el móvil los paneles se esconden tras un botón **☰ Menú**, pero donde mejor se ve es en el ordenador.
 
@@ -93,6 +106,10 @@ vespino-sim/        el código de la maqueta
   learn.js          averías, modelos y colores
   history.js        la línea de tiempo
   stage.js          escena, luces y calidad
+  shop.js           la tienda donde está aparcada
+  smoke.js          el humo del escape
+  grip.js           el puño del acelerador
+  inspect.js        el visor para examinar una pieza
   console.js        la interfaz
   live.js           la interacción
   main.js           el punto de entrada
