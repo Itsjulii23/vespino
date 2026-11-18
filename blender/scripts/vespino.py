@@ -1,8 +1,9 @@
 # Ayudas del proyecto Vespino. Cargar después de las genéricas:
-#   exec(open(r"C:\Users\julyc\.claude\skills\blender-modelo-desde-fotos\scripts\helpers.py", encoding="utf-8").read())
-#   exec(open(r"C:\Users\julyc\Desktop\Vespino\blender\scripts\vespino.py", encoding="utf-8").read())
-import re
-ROOT = r"C:\Users\julyc\Desktop\Vespino"
+#   exec(open(r"<repo>/skills/blender-modelo-desde-fotos/scripts/helpers.py", encoding="utf-8").read())
+#   exec(open(r"<repo>/blender/scripts/vespino.py", encoding="utf-8").read())
+import re, os
+# la carpeta del proyecto: VESPINO_ROOT si está definida; si no, la de encima del .blend abierto (blender/mortadelo.blend)
+ROOT = os.environ.get("VESPINO_ROOT") or os.path.dirname(os.path.dirname(bpy.data.filepath))
 REF = ROOT + r"\referencias\mortadelo\\"
 GROUPS = ["carroceria", "direccion", "ruedas", "motor", "transmision", "otros"]
 

@@ -144,7 +144,7 @@
 - `main.js`: `loadMortadelo().then(runLive)`.
 
 - [ ] **Step 1:** Test Playwright `vespino-sim/tests/page.test.mjs` (abre `teardown-out/dist/vespino-sim.html` por `file://`): sin errores de consola; `window.__vespino?.glbIds.length === 26`.
-- [ ] **Step 2:** Compilar (`node "C:/Users/julyc/.claude/skills/teardown/sims/build.mjs" ./vespino-sim`) y ejecutar: falla.
+- [ ] **Step 2:** Compilar (`node "<ruta-de-teardown>/sims/build.mjs" ./vespino-sim`) y ejecutar: falla.
 - [ ] **Step 3:** Implementar con `import glb from './mortadelo.glb'` (string base64 del build), `GLTFLoader.parse` sobre el ArrayBuffer; exponer `window.__vespino = {glbIds}` solo para tests.
 - [ ] **Step 4:** Compilar y test pasa.
 - [ ] **Step 5:** Commit.

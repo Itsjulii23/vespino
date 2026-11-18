@@ -16,7 +16,7 @@ description: Modelar un Vespino (hoy el Mortadelo de 1968; en el futuro más mod
 exec(open(r"<repo>/skills/blender-modelo-desde-fotos/scripts/helpers.py", encoding="utf-8").read())
 exec(open(r"<repo>/blender/scripts/vespino.py", encoding="utf-8").read())
 ```
-`<repo>` es la carpeta donde está clonado el proyecto (ruta absoluta). Si la skill genérica está instalada en `~/.claude/skills/`, también vale esa copia de `helpers.py`. En `vespino.py`, `ROOT` tiene que apuntar a esa misma carpeta.
+`<repo>` es la carpeta donde está clonado el proyecto (ruta absoluta). Si la skill genérica está instalada en `~/.claude/skills/`, también vale esa copia de `helpers.py`. `vespino.py` saca `ROOT` del `.blend` abierto (`blender/mortadelo.blend`) o de la variable de entorno `VESPINO_ROOT`; no escribas rutas de tu equipo en los scripts.
 Da `CAL_PERFIL`, `P(px,py)`, `P3(px,py,y)`, `AX(py)` (eje de dirección), `FRONT_AXLE`, `part_ids()`, `bike_names()`, `check_parts()`, `iou(nombres)`, `iou_body()`, `prec(nombres)`, `cmp(nombres)` (escribe `blender/cmp_perfil.png`), `dims()` y `build_all()`.
 
 ## La moto es código
