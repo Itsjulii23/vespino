@@ -15,9 +15,11 @@ Todo cabe en una sola página HTML que funciona sin internet. Le das doble clic 
 
 ## Qué puedes hacer con ella
 
+La moto es el primer Vespino, el de 1968 al que muchos llaman **Mortadelo**, modelado en Blender con las medidas de su ficha (más abajo cuento cómo).
+
 Lo que más me gusta es desmontarla. Tiene 43 piezas y cada una se puede quitar, mirar de cerca y leer para qué sirve. Si arrastras el deslizador de **Despiece**, la moto se abre entera en el aire.
 
-![Despiece completo](docs/despiece-completo.webp)
+![Despiece](docs/despiece.png)
 
 Además del despiece, hay siete pestañas:
 
@@ -43,7 +45,6 @@ Si quieres leer sobre las piezas sin abrir la maqueta, está el **[catálogo de 
 ![Quiz](docs/pestana-quiz.png)
 ![Modelos y color](docs/pestana-modelos.png)
 ![Modo conducción](docs/modo-conduccion.png)
-![Despiece en la maqueta](docs/despiece.png)
 ![Ficha de una pieza](docs/ficha-pieza.png)
 ![Pestaña Motor](docs/pestana-motor.png)
 ![Pestaña Historia](docs/pestana-historia.png)
@@ -60,18 +61,24 @@ Si quieres leer sobre las piezas sin abrir la maqueta, está el **[catálogo de 
 
 Si tu ordenador va justo, la página lo nota y baja la calidad sola para que no vaya a saltos.
 
-## Lo nuevo: el Mortadelo en Blender
+## El Mortadelo en Blender
 
-La maqueta web está hecha por código y su forma es aproximada. Ahora estoy haciendo un modelo más fiel en Blender, empezando por el primer Vespino de todos, el de 1968 al que muchos llaman **Mortadelo**.
+Al principio la maqueta estaba hecha toda por código y su forma era aproximada. Ahora la carrocería, la dirección, el motor por fuera, el escape y los pedales salen de un modelo de Blender del Mortadelo.
 
 ![El Mortadelo en Blender](docs/mortadelo-blender.png)
 
-Esta vez las medidas son las de la ficha técnica: 1130 mm entre ejes, 1760 mm de largo, 1040 mm de alto y ruedas de 18 pulgadas. La silueta está calcada de la foto de perfil del catálogo original, escalada con esas medidas. Al comprobarla, el largo, el alto y las ruedas cuadran con la ficha con menos de un 2 % de error.
+Las medidas son las de la ficha técnica: 1130 mm entre ejes, 1760 mm de largo, 610 de ancho, 1040 de alto y ruedas de 2¼ × 18 pulgadas. La forma está calcada de la foto de perfil del catálogo original, escalada con esas medidas. El modelo mide 1734 × 617 × 1043 mm, a menos de un 2 % de la ficha.
 
-Por ahora está el volumen general de las 43 piezas, cada una con el mismo nombre que en la maqueta para que algún día se puedan intercambiar. Lo siguiente es ir afinando pieza a pieza. Más adelante la idea es meterlo en una web donde se cargue al pulsar un botón, y añadir otros modelos de Vespino.
+Para no fiarme solo del ojo, cada pieza se compara con la foto: Blender la dibuja en silueta desde el mismo ángulo y se mide cuánto coincide. Casi todas las piezas pasan del 90 %. Tiene detalles que antes no había: los 36 radios de cada rueda, el dibujo del neumático, las aletas del cilindro, la tapa de la correa con sus dos rejillas y el rótulo «Vespino», los puños estriados o el velocímetro Veglia.
 
+Las piezas que se mueven (pistón, biela, cigüeñal, poleas, correa, engranajes y ruedas) siguen hechas por código, porque las mueve la cinemática del motor, pero ahora están colocadas donde van en el Mortadelo.
+
+- `blender/scripts/mortadelo_*.py`: la moto entera se genera con estos scripts. Si quiero cambiar una pieza, cambio el script y la vuelvo a generar.
 - `blender/mortadelo.blend`: el archivo de Blender.
-- `models/mortadelo.glb`: el modelo exportado para la web (unos 500 KB).
+- `vespino-sim/mortadelo.glb`: las piezas que usa la maqueta (va metido dentro del HTML, así que sigue funcionando sin internet).
+- `models/mortadelo.glb`: el modelo completo, las 43 piezas.
+
+Más adelante quiero añadir otros modelos de Vespino.
 
 ## Por dentro
 
@@ -80,6 +87,7 @@ vespino-3d.html     la maqueta compilada (un solo archivo)
 vespino-sim/        el código de la maqueta
   kin.js            cómo se mueven el motor y la transmisión
   bike.js           el modelo 3D y las piezas
+  mortadelo.js      carga el modelo de Blender (mortadelo.glb)
   parts.js          las 43 piezas y sus fichas
   motor.js          las lecciones del motor
   learn.js          averías, modelos y colores
@@ -88,7 +96,8 @@ vespino-sim/        el código de la maqueta
   console.js        la interfaz
   live.js           la interacción
   main.js           el punto de entrada
-blender/            modelos de Blender
+  tests/            pruebas (node --test vespino-sim/tests/*.test.mjs)
+blender/            modelos de Blender y los scripts que los generan
 models/             modelos exportados a GLB
 ```
 

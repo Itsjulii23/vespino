@@ -2,17 +2,21 @@
 // under the middle of the frame. update(s) poses everything from the crank angle and the engine speed (kin.js), so the
 // piston, the variator, the belt, the gears, the wheels and the speedometer needle cannot disagree.
 import * as THREE from 'three';
-import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
 import {PARTS} from './parts.js';
 import {beltPath, chargeColor, crankcase, crownX, D, DECK, drive, E, glow, pinX, T_EX, T_TR, X_IN} from './kin.js';
+import {mortadeloPart} from './mortadelo.js';
 
 const V3 = THREE.Vector3;
 const D2R = Math.PI / 180;
 const mm = (v) => v * 0.001;
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
-export const AXLE = {rear: [0, 0.28], front: [1.1, 0.28]};
-export const CRANK = [0.5, 0.26];
-export const DRIVEN = [0.19, 0.27];
+// the Vespino Mortadelo (1968): 1130 mm wheelbase, 2 1/4" x 18" tyres; crank and driven pulley measured on the
+// factory profile photo (blender/scripts/vespino.py), the barrel leans forward and up 12°
+export const AXLE = {rear: [0, 0.2855], front: [1.13, 0.2855]};
+export const CRANK = [0.343, 0.287];
+export const DRIVEN = [0.035, 0.29];
+const CYL_TILT = 12 * D2R;
+const WHEEL_K = 0.2855 / 0.2802; // the code wheel is 280 mm in radius; the Mortadelo's is 285.5
 const Z_BELT = 0.092;
 
 // ------------------------------------------------------------ materials
@@ -42,19 +46,38 @@ const treadTex = (() => {
 const TYRE = std({color: '#1b1b1c', metalness: 0, roughness: 0.88, bumpMap: treadTex, bumpScale: 2.2});
 const SEAT = std({color: '#17181a', metalness: 0, roughness: 0.5});
 const BELT = std({color: '#2a2b2e', metalness: 0.1, roughness: 0.7, side: THREE.DoubleSide});
-const WHITE = std({color: '#e9ebee', metalness: 0.2, roughness: 0.45});
 const RED = std({color: '#b01a24', metalness: 0.2, roughness: 0.4, emissive: '#6a0a10', emissiveIntensity: 0.5});
-const LENS = std({color: '#f4f1e2', metalness: 0.1, roughness: 0.15, emissive: '#fff4c8', emissiveIntensity: 0.22});
 const GLASS = new THREE.MeshPhysicalMaterial({color: '#cfe8ff', metalness: 0, roughness: 0.05, transparent: true, opacity: 0.16, depthWrite: false, side: THREE.DoubleSide});
 const PORTM = std({color: '#2c2f35', metalness: 0.2, roughness: 0.8});
 const gasMat = () => new THREE.MeshStandardMaterial({color: '#3d8fe0', roughness: 0.5, transparent: true, opacity: 0.55, depthWrite: false, emissive: '#000000', emissiveIntensity: 0.5});
 // materials that become glass or hollow in the cutaway modes
-let INSET = null;
 const GREEN2 = GREEN.clone();
 GREEN2.side = THREE.DoubleSide;
 GREEN2.userData.double = true;
 const CAST = std({color: "#b8bbc1", metalness: 0.85, roughness: 0.42, envMapIntensity: 0.8});
 const SHELLS = [GREEN, GREEN2, CASE, CAST];
+
+// parts modelled in Blender: placed as exported, their materials swapped for the page's own so the paint colour,
+// the glass and section cutaways and the highlight keep working. Engine castings take CAST so they turn to glass.
+const ENGINE_CAST = new Set(['carter', 'cilindro', 'culata']);
+// trim on a shell (bolts, grilles, the script badges) turns to glass with it instead of floating in the cutaway
+const SHELL_PARTS = new Set(['chasis', 'trasera', 'cubierta', 'cubierta-correa', 'carter', 'tapa-volante', 'cilindro', 'culata']);
+const CHROME_S = CHROME.clone();
+const DARK_S = DARK.clone();
+SHELLS.push(CHROME_S, DARK_S);
+const glbMat = (id, m) => {
+  const sh = SHELL_PARTS.has(id);
+  const map = {pintura: GREEN, pintura_interior: GREEN2, cromo: sh ? CHROME_S : CHROME, aluminio: ENGINE_CAST.has(id) ? CAST : ALU, carter: CASE, acero: sh ? CHROME_S : STEEL, goma: sh ? DARK_S : RUBBER, asiento: SEAT};
+  return map[m.name] || m;
+};
+const glb = (id, parent) => {
+  const o = mortadeloPart(id);
+  o.traverse((m) => {
+    if (m.isMesh) m.material = glbMat(id, m.material);
+  });
+  parent.add(o);
+  return o;
+};
 
 // ------------------------------------------------------------ small helpers
 let curPart = null; // the piece being built: every mesh made while it is set belongs to it
@@ -72,55 +95,8 @@ const mesh = (g, m, p = [0, 0, 0], r = [0, 0, 0], s = [1, 1, 1]) => {
   o.scale.set(...s);
   return o;
 };
-const link = (a, b, r, m, r2 = r) => {
-  const A = new V3(...a);
-  const B = new V3(...b);
-  const d = B.clone().sub(A);
-  const len = d.length();
-  const o = shadowed(new THREE.Mesh(new THREE.CylinderGeometry(r2, r, len, 14), m));
-  o.position.copy(A).addScaledVector(d, 0.5);
-  o.quaternion.setFromUnitVectors(new V3(0, 1, 0), d.normalize());
-  return o;
-};
 const cylZ = (r, len, m, p = [0, 0, 0], seg = 32) => mesh(new THREE.CylinderGeometry(r, r, len, seg).rotateX(Math.PI / 2), m, p);
 const cylX = (r, len, m, p = [0, 0, 0], seg = 32) => mesh(new THREE.CylinderGeometry(r, r, len, seg).rotateZ(Math.PI / 2), m, p);
-const curveTube = (pts, r, m, seg = 96) => shadowed(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map((p) => new V3(...p))), seg, r, 16, false), m));
-
-function loft(pts, secFn, nSamp = 100, nSec = 32, n = 3.2) {
-  const curve = new THREE.CatmullRomCurve3(pts.map((p) => new V3(...p)));
-  const pos = [];
-  const idx = [];
-  const e = 2 / n;
-  for (let i = 0; i <= nSamp; i++) {
-    const t = i / nSamp;
-    const P = curve.getPointAt(t);
-    const T = curve.getTangentAt(t);
-    const N = new V3(-T.y, T.x, 0).normalize();
-    const [a, b] = secFn(t);
-    for (let j = 0; j < nSec; j++) {
-      const ph = (j / nSec) * Math.PI * 2;
-      const c = Math.cos(ph);
-      const sn = Math.sin(ph);
-      const u = Math.sign(c) * Math.abs(c) ** e;
-      const v = Math.sign(sn) * Math.abs(sn) ** e;
-      pos.push(P.x + N.x * a * u, P.y + N.y * a * u, b * v);
-    }
-  }
-  for (let i = 0; i < nSamp; i++) {
-    for (let j = 0; j < nSec; j++) {
-      const a = i * nSec + j;
-      const b = i * nSec + ((j + 1) % nSec);
-      const c = (i + 1) * nSec + j;
-      const d = (i + 1) * nSec + ((j + 1) % nSec);
-      idx.push(a, c, b, b, c, d);
-    }
-  }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  g.setIndex(idx);
-  g.computeVertexNormals();
-  return g;
-}
 
 // a spur gear outline: teeth count, module, face width
 function gearGeo(teeth, module, width) {
@@ -189,15 +165,6 @@ function makeWheel({drum, drumLen, id}) {
   return g;
 }
 
-function stadium(c1, r1, c2, r2, depth, mat, n = 64) {
-  const {pts} = beltPath(c1, r1, c2, r2, n);
-  const s = new THREE.Shape();
-  pts.forEach((p, i) => (i ? s.lineTo(p[0], p[1]) : s.moveTo(p[0], p[1])));
-  s.closePath();
-  const g = new THREE.ExtrudeGeometry(s, {depth, bevelEnabled: true, bevelSize: 0.004, bevelThickness: 0.004, bevelSegments: 2, curveSegments: 4});
-  return mesh(g, mat);
-}
-
 function dialTexture() {
   const c = document.createElement('canvas');
   c.width = c.height = 256;
@@ -234,25 +201,6 @@ function dialTexture() {
   t.anisotropy = 4;
   return t;
 }
-function badgeTexture() {
-  const c = document.createElement('canvas');
-  c.width = 512;
-  c.height = 160;
-  const g = c.getContext('2d');
-  g.font = 'italic 600 96px "Brush Script MT", "Segoe Script", cursive';
-  g.textAlign = 'center';
-  g.textBaseline = 'middle';
-  g.lineWidth = 7;
-  g.strokeStyle = '#41454b';
-  g.strokeText('Vespino', 256, 82);
-  g.fillStyle = '#e4e6ea';
-  g.fillText('Vespino', 256, 82);
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  t.anisotropy = 4;
-  return t;
-}
-
 export function buildBike() {
   const root = new THREE.Group();
   const shell = new THREE.Group(); // everything the isolate toggle hides: sheet metal, frame, fork, seat, front wheel
@@ -265,229 +213,73 @@ export function buildBike() {
   // ---------------------------------------------------------- wheels
   const rear = makeWheel({drum: 0.062, drumLen: 0.05, id: 't'});
   rear.position.set(AXLE.rear[0], AXLE.rear[1], 0);
+  rear.scale.setScalar(WHEEL_K);
   root.add(rear);
   const fw = makeWheel({drum: 0.05, drumLen: 0.05, id: 'd'});
   fw.position.set(AXLE.front[0], AXLE.front[1], 0);
+  fw.scale.setScalar(WHEEL_K);
   front.add(fw);
 
-  // ---------------------------------------------------------- frame, body, sheet metal
-  P('chasis');
-  const spineGeo = loft(
-    [[1.02, 0.93, 0], [1.0, 0.8, 0], [0.96, 0.66, 0], [0.9, 0.55, 0], [0.8, 0.48, 0], [0.68, 0.455, 0], [0.56, 0.46, 0], [0.47, 0.51, 0], [0.4, 0.6, 0], [0.37, 0.7, 0]],
-    (t) => [0.034 + 0.016 * Math.max(0, 1 - t * 3), 0.05 + 0.05 * Math.min(1, t * 2.4)],
-  );
-  body.add(mesh(spineGeo, GREEN2));
-  // the rear body: a tall panel from the trough up to the seat, with a recessed door panel on each side
-  P('trasera');
-  {
-    const panel = mesh(new RoundedBoxGeometry(0.25, 0.3, 0.21, 6, 0.055), GREEN, [0.3, 0.575, 0], [0, 0, -0.1]);
-    body.add(panel);
-    const inset = std({color: '#6fb15d', metalness: 0.4, roughness: 0.35});
-    INSET = inset;
-    SHELLS.push(inset);
-    for (const sd of [1, -1]) {
-      const d = mesh(new RoundedBoxGeometry(0.13, 0.17, 0.006, 3, 0.012), inset, [0.31, 0.57, sd * 0.1035], [0, 0, -0.1]);
-      body.add(d);
-    }
-    // the shelf under the rack that joins the body to the rear fender
-    body.add(mesh(new RoundedBoxGeometry(0.44, 0.085, 0.2, 5, 0.035), GREEN, [-0.0, 0.612, 0], [0, 0, 0.1]));
-  }
-  // the fuel tank, hidden inside the rear body
-  P('deposito');
-  {
-    const tank = std({color: '#c9cdd2', metalness: 0.8, roughness: 0.4});
-    body.add(mesh(new RoundedBoxGeometry(0.17, 0.2, 0.14, 4, 0.03), tank, [0.3, 0.575, 0], [0, 0, -0.1]));
-    body.add(cylZ(0.016, 0.02, tank, [0.3, 0.69, 0]));
-  }
-  // the lower box over the engine, with the script badge on both sides
-  P('cubierta');
-  body.add(mesh(new RoundedBoxGeometry(0.42, 0.19, 0.235, 5, 0.055), GREEN, [0.66, 0.285, 0]));
-  const badge = new THREE.MeshBasicMaterial({map: badgeTexture(), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4});
-  for (const s of [1, -1]) {
-    const p = new THREE.Mesh(new THREE.PlaneGeometry(0.13, 0.04), badge);
-    p.userData.part = 'cubierta';
-    p.position.set(0.66, 0.29, s * 0.1185);
-    if (s < 0) p.rotation.y = Math.PI;
-    body.add(p);
-  }
-  // rear fender: the top of the wheel arch, wider than the tyre; front fender over the front wheel
-  const arch = (r0, half, drop, a0, len) => {
-    const prof = [];
-    for (let i = 0; i <= 14; i++) {
-      const u = (i / 14) * 2 - 1; // -1..1 across the width
-      prof.push(new THREE.Vector2(r0 + drop * (1 - Math.cos((u * Math.PI) / 2)) * -1 + drop * 0 + 0.03 * Math.cos((u * Math.PI) / 2), u * half));
-    }
-    return new THREE.LatheGeometry(prof, 64, a0, len).rotateX(Math.PI / 2);
-  };
-  P('guardabarros-t');
-  const fenderR = mesh(arch(0.296, 0.066, 0, 2.0, 3.3), GREEN2, [AXLE.rear[0], AXLE.rear[1], 0]);
-  body.add(fenderR);
-  P('guardabarros-d');
-  const fenderF = mesh(arch(0.292, 0.058, 0, 0.95, 3.0), GREEN2, [AXLE.front[0], AXLE.front[1], 0]);
-  front.add(fenderF);
-  // luggage rack: a tray with a slot, on two struts
-  P('portabultos');
-  {
-    const sh = new THREE.Shape();
-    const w = 0.36;
-    const h = 0.19;
-    const rr = 0.03;
-    sh.moveTo(-w / 2 + rr, -h / 2);
-    sh.lineTo(w / 2 - rr, -h / 2);
-    sh.quadraticCurveTo(w / 2, -h / 2, w / 2, -h / 2 + rr);
-    sh.lineTo(w / 2, h / 2 - rr);
-    sh.quadraticCurveTo(w / 2, h / 2, w / 2 - rr, h / 2);
-    sh.lineTo(-w / 2 + rr, h / 2);
-    sh.quadraticCurveTo(-w / 2, h / 2, -w / 2, h / 2 - rr);
-    sh.lineTo(-w / 2, -h / 2 + rr);
-    sh.quadraticCurveTo(-w / 2, -h / 2, -w / 2 + rr, -h / 2);
-    const hole = new THREE.Path();
-    hole.moveTo(-0.11, -0.03);
-    hole.lineTo(0.11, -0.03);
-    hole.lineTo(0.11, 0.03);
-    hole.lineTo(-0.11, 0.03);
-    hole.closePath();
-    sh.holes.push(hole);
-    const g = new THREE.ExtrudeGeometry(sh, {depth: 0.018, bevelEnabled: true, bevelSize: 0.004, bevelThickness: 0.004, bevelSegments: 2, curveSegments: 6}).rotateX(-Math.PI / 2);
-    body.add(mesh(g, GREEN, [-0.035, 0.665, 0], [0, 0, 0.1]));
-  }
-  // seat: a pear shaped cushion, narrow at the nose and wide at the back
-  P('sillin');
-  {
-    const sh = new THREE.Shape();
-    sh.moveTo(0.19, 0);
-    sh.bezierCurveTo(0.19, 0.05, 0.12, 0.075, 0.05, 0.095);
-    sh.bezierCurveTo(-0.03, 0.115, -0.14, 0.14, -0.185, 0.115);
-    sh.bezierCurveTo(-0.215, 0.1, -0.215, 0.04, -0.215, 0);
-    sh.bezierCurveTo(-0.215, -0.04, -0.215, -0.1, -0.185, -0.115);
-    sh.bezierCurveTo(-0.14, -0.14, -0.03, -0.115, 0.05, -0.095);
-    sh.bezierCurveTo(0.12, -0.075, 0.19, -0.05, 0.19, 0);
-    const g = new THREE.ExtrudeGeometry(sh, {depth: 0.03, bevelEnabled: true, bevelSize: 0.022, bevelThickness: 0.022, bevelSegments: 5, curveSegments: 20}).rotateX(-Math.PI / 2);
-    body.add(mesh(g, SEAT, [0.37, 0.735, 0], [0, 0, -0.03]));
-    body.add(mesh(new RoundedBoxGeometry(0.3, 0.02, 0.16, 3, 0.008), GREEN, [0.37, 0.725, 0], [0, 0, -0.03]));
-  }
-  // taillight and plate
-  P('piloto');
-  body.add(mesh(new RoundedBoxGeometry(0.03, 0.05, 0.075, 3, 0.01), RED, [-0.272, 0.445, 0]));
-  body.add(mesh(new THREE.BoxGeometry(0.004, 0.11, 0.2), WHITE, [-0.328, 0.36, 0], [0, 0, -0.12]));
+  // ---------------------------------------------------------- frame, body, sheet metal: the Mortadelo from Blender
+  for (const id of ['chasis', 'trasera', 'deposito', 'cubierta', 'guardabarros-t', 'portabultos', 'sillin', 'piloto']) glb(id, body);
 
-  // ---------------------------------------------------------- fork, headset, handlebar
-  P('horquilla');
-  const top = [1.02, 0.86, 0];
-  const axle = [AXLE.front[0], AXLE.front[1], 0];
-  for (const s of [1, -1]) {
-    const a = [top[0], top[1], s * 0.068];
-    const b = [axle[0], axle[1], s * 0.068];
-    const mid = [a[0] + (b[0] - a[0]) * 0.74, a[1] + (b[1] - a[1]) * 0.74, a[2]];
-    front.add(link(a, mid, 0.019, GREEN));
-    front.add(link(mid, b, 0.0125, CHROME));
-    front.add(cylZ(0.02, 0.01, CHROME, [mid[0], mid[1], mid[2]], 20).translateOnAxis(new V3(0, 0, 0), 0));
-  }
-  front.add(mesh(new RoundedBoxGeometry(0.055, 0.032, 0.19, 3, 0.012), GREEN, [1.012, 0.84, 0]));
-  front.add(link([1.062, 0.56, -0.068], [1.062, 0.56, 0.068], 0.007, GREEN));
-  // the fork's centre badge and the horn grille (the chrome shell on the front of the neck)
-  P('claxon');
-  const hornShell = mesh(new THREE.SphereGeometry(0.03, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2), CHROME, [1.04, 0.78, 0], [0, 0, -Math.PI / 2]);
-  front.add(hornShell);
-  front.add(mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.004, 6).rotateZ(Math.PI / 2), new THREE.MeshStandardMaterial({color: '#2f6fd0', roughness: 0.4}), [1.0, 0.73, 0.0]));
-  // headset: a rounded body that carries the dial, the lamp and the bar
-  P('manillar');
-  front.add(mesh(new THREE.SphereGeometry(1, 36, 20), GREEN, [1.025, 0.955, 0], [0, 0, 0], [0.085, 0.05, 0.11]));
-  for (const sd of [1, -1]) front.add(link([1.02, 0.955, sd * 0.07], [1.03, 0.955, sd * 0.22], 0.037, GREEN, 0.017));
-  front.add(curveTube([[1.03, 0.955, -0.3], [1.02, 0.96, -0.2], [1.0, 0.965, -0.09], [1.0, 0.965, 0.09], [1.02, 0.96, 0.2], [1.03, 0.955, 0.3]], 0.0135, GREEN, 40));
-  for (const s of [1, -1]) {
-    front.add(cylZ(0.0175, 0.1, RUBBER, [1.03, 0.955, s * 0.265], 20));
-    front.add(cylZ(0.021, 0.008, DARK, [1.03, 0.955, s * 0.31], 20));
-    // brake lever, swept back and out
-    front.add(link([1.0, 0.97, s * 0.21], [0.93, 0.935, s * 0.305], 0.0065, CHROME, 0.003));
-    // mirror
-    P('espejos');
-    front.add(link([1.04, 0.975, s * 0.285], [1.02, 1.05, s * 0.3], 0.004, CHROME));
-    const m = mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.01, 32).rotateZ(Math.PI / 2), CHROME, [1.02, 1.07, s * 0.3], [0, 0.0, 0.0], [1, 0.82, 1]);
-    front.add(m);
-    front.add(mesh(new THREE.CircleGeometry(0.031, 28), new THREE.MeshStandardMaterial({color: '#bdd0d8', metalness: 1, roughness: 0.08}), [1.02 - 0.0055, 1.07, s * 0.3], [0, -Math.PI / 2, 0], [1, 0.82, 1]));
-  }
-  // the right switch block
-  P('manillar');
-  front.add(mesh(new RoundedBoxGeometry(0.04, 0.028, 0.05, 3, 0.008), CHROME, [1.04, 0.935, -0.17]));
-  // headlamp: a chrome cup, a lens, a rim
-  P('faro');
-  front.add(mesh(new THREE.SphereGeometry(0.078, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), CHROME, [1.1, 0.905, 0], [0, 0, Math.PI / 2], [1, 1.05, 1.05]));
-  front.add(mesh(new THREE.CircleGeometry(0.068, 32), LENS, [1.101, 0.905, 0], [0, Math.PI / 2, 0]));
-  front.add(mesh(new THREE.TorusGeometry(0.073, 0.005, 10, 40), CHROME, [1.1, 0.905, 0], [0, Math.PI / 2, 0]));
-  // the dial on top of the headset, its needle driven by the road speed
+  // ---------------------------------------------------------- fork, headset, handlebar, lamp, horn, mirror
+  for (const id of ['guardabarros-d', 'horquilla', 'claxon', 'manillar', 'espejos', 'faro']) glb(id, front);
+  // the dial: the Veglia housing from Blender, a printed face and a needle driven by the road speed
   P('velocimetro');
+  const dialBody = glb('velocimetro', front);
+  dialBody.traverse((m) => {
+    if (m.isMesh && m.material.name === 'piloto') m.visible = false; // Blender's fixed needle; the live one is below
+  });
   const dialG = new THREE.Group();
-  dialG.position.set(1.0, 1.016, 0);
-  const tilt = new THREE.Group();
-  tilt.rotation.z = 0.28;
-  tilt.rotation.x = -Math.PI / 2;
-  dialG.add(tilt);
-  tilt.add(new THREE.Mesh(new THREE.CircleGeometry(0.034, 36), new THREE.MeshBasicMaterial({map: dialTexture()})));
-  const needle = new THREE.Group();
-  needle.add(mesh(new THREE.BoxGeometry(0.0025, 0.026, 0.0008), new THREE.MeshBasicMaterial({color: '#d6182b'}), [0, 0.011, 0.0012]));
-  tilt.add(needle);
-  const bezel = new THREE.Mesh(new THREE.TorusGeometry(0.035, 0.0035, 8, 36), CHROME);
-  tilt.add(bezel);
-  dialG.userData.part = 'velocimetro';
-  front.add(dialG);
-
-  // ---------------------------------------------------------- pedals, stand, shock, exhaust, air filter
-  for (const s of [1, -1]) {
-    P('pedales');
-    shell.add(link([0.54, 0.215, s * 0.1], [0.71, 0.17, s * 0.125], 0.009, CHROME));
-    shell.add(mesh(new RoundedBoxGeometry(0.1, 0.022, 0.065, 2, 0.006), RUBBER, [0.73, 0.165, s * 0.14]));
-    shell.add(link([0.7, 0.158, s * 0.108], [0.7, 0.158, s * 0.172], 0.005, CHROME));
-    P('amortiguador');
-    shell.add(link([0.3, 0.6, s * 0.088], [0.2, 0.3, s * 0.088], 0.014, CHROME, 0.011));
-    shell.add(link([0.2, 0.3, s * 0.088], [0.188, 0.275, s * 0.088], 0.01, DARK));
+  {
+    const n = new V3(-0.4104, 0.9119, 0).normalize(); // the face looks up and back at the rider
+    const y = new V3(1, 0, 0).addScaledVector(n, -n.x).normalize();
+    dialG.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(new V3().crossVectors(y, n), y, n));
+    dialG.position.set(0.8217, 1.0255, 0);
   }
-  // centre stand
-  P('caballete');
-  shell.add(curveTube([[0.34, 0.22, -0.085], [0.38, 0.09, -0.085], [0.39, 0.0, -0.085]], 0.009, DARK, 12));
-  shell.add(curveTube([[0.34, 0.22, 0.085], [0.38, 0.09, 0.085], [0.39, 0.0, 0.085]], 0.009, DARK, 12));
-  shell.add(link([0.34, 0.22, -0.085], [0.34, 0.22, 0.085], 0.008, DARK));
-  P('escape');
-  // exhaust: a pipe from the cylinder's bottom port back to a chrome muffler on the left
-  const ex = [];
-  ex.push(curveTube([[0.598, 0.215, 0], [0.595, 0.15, 0.03], [0.56, 0.125, 0.09], [0.47, 0.12, 0.1]], 0.0155, CHROME, 40));
-  ex.push(mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.4, 28).rotateZ(Math.PI / 2), CHROME, [0.27, 0.12, 0.1]));
-  ex.push(mesh(new THREE.CylinderGeometry(0.019, 0.032, 0.05, 28).rotateZ(Math.PI / 2), CHROME, [0.045, 0.12, 0.1]));
-  ex.forEach((e) => root.add(e));
+  dialG.add(new THREE.Mesh(new THREE.CircleGeometry(0.0245, 36), new THREE.MeshBasicMaterial({map: dialTexture(), polygonOffset: true, polygonOffsetFactor: -2})).translateZ(0.0003));
+  const needle = new THREE.Group();
+  needle.position.z = 0.0009;
+  needle.scale.setScalar(0.72);
+  needle.add(mesh(new THREE.BoxGeometry(0.0025, 0.026, 0.0008), new THREE.MeshBasicMaterial({color: '#d6182b'}), [0, 0.011, 0]));
+  dialG.add(needle);
+  dialG.traverse((o) => (o.userData.part = 'velocimetro'));
+  front.add(dialG);
+  P(null);
+
+  // ---------------------------------------------------------- pedals, stand, shock, exhaust
+  for (const id of ['pedales', 'amortiguador', 'caballete']) glb(id, shell);
+  glb('escape', root);
   const anchors = {
-    cylinder: new V3(0.5 + mm(95), 0.3, 0),
-    flywheel: new V3(0.5, 0.26, -0.085),
-    drivePulley: new V3(0.5, 0.26, Z_BELT),
+    cylinder: new V3(CRANK[0] + 0.095 * Math.cos(CYL_TILT), CRANK[1] + 0.095 * Math.sin(CYL_TILT), 0),
+    flywheel: new V3(CRANK[0], CRANK[1], -0.085),
+    drivePulley: new V3(CRANK[0], CRANK[1], Z_BELT),
     drivenPulley: new V3(DRIVEN[0], DRIVEN[1], Z_BELT),
-    finalDrive: new V3(0.04, 0.28, 0.08),
-    exhaust: new V3(0.2, 0.12, 0.13),
-    dial: new V3(1.0, 1.0, 0),
-    crankcase: new V3(0.5, 0.26, 0.0),
-    frontWheel: new V3(1.1, 0.28, 0.045),
-    rack: new V3(0.07, 0.69, 0.1),
-    lamp: new V3(1.175, 0.905, 0),
+    finalDrive: new V3(0.02, 0.31, 0.065),
+    exhaust: new V3(0.13, 0.17, 0.11),
+    dial: new V3(0.822, 1.03, 0),
+    crankcase: new V3(CRANK[0], CRANK[1], 0.0),
+    frontWheel: new V3(AXLE.front[0], AXLE.front[1], 0.045),
+    rack: new V3(0.0, 0.69, 0.1),
+    lamp: new V3(0.902, 0.975, 0),
   };
 
   // ---------------------------------------------------------- the engine: crankcase, barrel, head, crank, rod, piston, gas
   const eng = new THREE.Group();
   eng.position.set(CRANK[0], CRANK[1], 0);
+  eng.rotation.z = CYL_TILT; // the bore axis is the engine's local +x
   root.add(eng);
   const castings = new THREE.Group();
   eng.add(castings);
-  P('carter');
-  castings.add(cylZ(0.056, 0.07, CAST, [0, 0, 0], 40));
-  castings.add(mesh(new THREE.BoxGeometry(0.066, 0.09, 0.07), CAST, [0.03, 0, 0]));
-  // the barrel: a core and cooling fins, then the head
-  P('cilindro');
+  // the castings come from Blender in page coordinates: a frame that undoes the engine's own placement
+  const abs = new THREE.Group();
+  eng.updateMatrix();
+  abs.applyMatrix4(eng.matrix.clone().invert());
+  castings.add(abs);
+  for (const id of ['carter', 'cilindro', 'culata', 'bujia', 'tapa-volante', 'filtro', 'carburador']) glb(id, abs);
   const x0 = mm(62);
   const x1 = mm(DECK);
-  castings.add(cylX(0.0365, x1 - x0, CAST, [(x0 + x1) / 2, 0, 0], 32));
-  for (let i = 0; i < 7; i++) castings.add(cylX(0.047, 0.0035, CAST, [x0 + 0.004 + i * 0.0085, 0, 0], 32));
-  P('culata');
-  castings.add(cylX(0.042, 0.032, CAST, [x1 + 0.016, 0, 0], 32));
-  for (let i = 0; i < 4; i++) castings.add(cylX(0.049, 0.003, CAST, [x1 + 0.006 + i * 0.0075, 0, 0], 32));
-  P('bujia');
-  eng.add(link([x1 + 0.025, 0.04, 0], [x1 + 0.025, 0.085, 0], 0.007, WHITE), link([x1 + 0.025, 0.085, 0], [x1 + 0.025, 0.1, 0], 0.003, STEEL));
   // a glass liner so the piston reads through the fins; the port windows sit on it
   P('cilindro');
   const liner = cylX(mm(19.2), x1 - x0, GLASS, [(x0 + x1) / 2, 0, 0], 32);
@@ -555,14 +347,6 @@ export function buildBike() {
   }
   fly.add(mesh(new THREE.BoxGeometry(0.022, 0.006, 0.01), RED, [0.03, 0, 0.012]));
   eng.add(fly);
-  P('tapa-volante');
-  const flyCover = cylZ(0.058, 0.03, CASE, [0, 0, -0.082], 40);
-  eng.add(flyCover);
-  // carburettor and air filter ahead of the head
-  P('filtro');
-  castings.add(cylX(0.04, 0.11, CASE, [0.19, 0.0, 0], 32));
-  P('carburador');
-  castings.add(cylX(0.016, 0.06, CAST, [x1 + 0.055, -0.012, 0], 16));
   P(null);
 
   // ---------------------------------------------------------- the variator, the belt, the gears (world frame, left side)
@@ -615,11 +399,22 @@ export function buildBike() {
   P('engranajes');
   const P1 = new V3(DRIVEN[0], DRIVEN[1], 0);
   const P3 = new V3(AXLE.rear[0], AXLE.rear[1], 0);
-  const P2 = P1.clone().lerp(P3, (35 * D.module) / (74 * D.module));
+  // on the Mortadelo the driven pulley sits 35 mm from the hub, so the train is drawn at a 1 mm module (the ratios,
+  // which are all the motion uses, are the real ones) and the idler goes above the line where both meshes reach it
+  const GM = mm(1);
+  const P2 = (() => {
+    const r12 = 35 * GM;
+    const r23 = 39 * GM;
+    const d = P1.distanceTo(P3);
+    const a = (d * d + r12 * r12 - r23 * r23) / (2 * d);
+    const h = Math.sqrt(Math.max(0, r12 * r12 - a * a));
+    const u = P3.clone().sub(P1).normalize();
+    return P1.clone().addScaledVector(u, a).addScaledVector(new V3(u.y, -u.x, 0), h);
+  })();
   const gear = (n, pos, z) => {
     const g = new THREE.Group();
     g.position.set(pos.x, pos.y, z);
-    g.add(mesh(gearGeo(n, mm(D.module), 0.011), STEEL));
+    g.add(mesh(gearGeo(n, GM, 0.011), STEEL));
     drv.add(g);
     return g;
   };
@@ -658,16 +453,9 @@ export function buildBike() {
   ticks.userData.part = 'correa';
   drv.add(ticks);
   // the belt case: two bulges, a web to the hub, grilles; a ghost shell in the cutaway modes
-  P('cubierta-correa');
   const caseG = new THREE.Group();
-  caseG.add(stadium(CRANK, 0.062, DRIVEN, 0.062, 0.075, CASE).translateZ(0.046));
-  caseG.add(stadium(DRIVEN, 0.07, [0, 0.28], 0.093, 0.075, CASE).translateZ(0.046));
-  for (const c of [CRANK, DRIVEN]) {
-    for (let i = 0; i < 4; i++) caseG.add(mesh(new THREE.TorusGeometry(0.014 + i * 0.012, 0.0014, 6, 36), DARK, [c[0], c[1], 0.1235]));
-  }
-  caseG.add(cylZ(0.052, 0.012, ALU, [0, 0.28, 0.13], 36));
+  glb('cubierta-correa', caseG);
   root.add(caseG);
-  P(null);
 
   // ---------------------------------------------------------- cutaway and isolate
   const clipMats = [...SHELLS];
@@ -900,7 +688,6 @@ export function buildBike() {
   const setPaint = (hex) => {
     GREEN.color.set(hex);
     GREEN2.color.set(hex);
-    if (INSET) INSET.color.set(hex).offsetHSL(0, -0.03, -0.06);
   };
   const setPartVisible = (id, on) => {
     for (const m of partMeshes[id] || []) m.visible = on;

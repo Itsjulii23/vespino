@@ -23,12 +23,12 @@ const playText = (p) => (p >= 1 ? 'Normal' : `1/${Math.round(1 / p)} (lento)`);
 
 // ------------------------------------------------------------ the views: target, azimuth (0 = the bike's left side), elevation, distance
 export const VIEW_FN = {
-  hero: (u) => ({tx: 0.56, ty: 0.5, tz: 0, az: 38 + 3 * u, el: 14, d: 3.55, sx: -20, sy: 0}),
-  side: (u) => ({tx: 0.56, ty: 0.5, tz: 0, az: 2 + 2 * u, el: 4, d: 3.4, sx: -20, sy: 0}),
-  engine: (u) => ({tx: 0.56, ty: 0.3, tz: 0, az: 30 + 4 * u, el: 14, d: 1.2, sx: -30, sy: 10}),
-  drive: (u) => ({tx: 0.27, ty: 0.25, tz: 0, az: 12 - 3 * u, el: 7, d: 2.0, sx: -30, sy: 20}),
-  cockpit: (u) => ({tx: 1.0, ty: 0.9, tz: 0, az: -70 + 4 * u, el: 36, d: 1.75, sx: -20, sy: 0}),
-  front: (u) => ({tx: 0.9, ty: 0.55, tz: 0, az: 72 - 4 * u, el: 10, d: 3.1, sx: -20, sy: 0}),
+  hero: (u) => ({tx: 0.565, ty: 0.5, tz: 0, az: 38 + 3 * u, el: 14, d: 3.55, sx: -20, sy: 0}),
+  side: (u) => ({tx: 0.565, ty: 0.5, tz: 0, az: 2 + 2 * u, el: 4, d: 3.4, sx: -20, sy: 0}),
+  engine: (u) => ({tx: 0.41, ty: 0.31, tz: 0, az: 30 + 4 * u, el: 14, d: 1.2, sx: -30, sy: 10}),
+  drive: (u) => ({tx: 0.19, ty: 0.29, tz: 0, az: 12 - 3 * u, el: 7, d: 2.0, sx: -30, sy: 20}),
+  cockpit: (u) => ({tx: 0.85, ty: 0.95, tz: 0, az: -70 + 4 * u, el: 36, d: 1.75, sx: -20, sy: 0}),
+  front: (u) => ({tx: 0.92, ty: 0.55, tz: 0, az: 72 - 4 * u, el: 10, d: 3.1, sx: -20, sy: 0}),
 };
 const WHEELS = ['rueda-t-neumatico', 'rueda-t-llanta', 'rueda-t-tambor', 'rueda-d-neumatico', 'rueda-d-llanta', 'rueda-d-tambor'];
 const KEYS = {1: 'hero', 2: 'side', 3: 'engine', 4: 'drive', 5: 'cockpit', 6: 'front'};
