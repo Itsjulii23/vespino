@@ -77,6 +77,19 @@ El motor no está de adorno. El pistón, la biela y el cigüeñal se mueven con 
 
 Si eliges una pieza o una pestaña, la dirección de la página cambia (por ejemplo `#pieza=carter`), así que puedes mandarle a alguien justo lo que estás viendo. En el móvil los paneles van detrás de un botón **☰ Menú**, aunque donde mejor se ve es en el ordenador. Si tu ordenador va justo, la página lo nota y baja la calidad sola para no ir a saltos.
 
+## La web
+
+La maqueta vive dentro de una web hecha con Angular (carpeta [`web/`](web)): una portada con la historia y la ficha técnica, y la ruta `/maqueta` con el simulador a pantalla completa. Se publica sola en GitHub Pages con cada cambio en `main`.
+
+```
+cd web
+npm install
+npm start        # servidor local
+npm test -- --watch=false
+```
+
+El simulador no se toca: `npm start` y `npm run build` copian `vespino-3d.html` a `web/public/sim/`.
+
 ## Cómo está hecho
 
 ### El Mortadelo en Blender
