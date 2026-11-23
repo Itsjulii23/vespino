@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const raiz = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const origen = resolve(raiz, '..', 'vespino-3d.html');
-const destino = resolve(raiz, 'public', 'maqueta', 'index.html');
+const destino = resolve(raiz, 'public', 'sim', 'index.html');
 
 if (!existsSync(origen)) {
   console.error(`No encuentro la maqueta en ${origen}`);

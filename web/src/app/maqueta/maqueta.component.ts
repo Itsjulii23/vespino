@@ -11,6 +11,6 @@ import { RouterLink } from '@angular/router';
 export class MaquetaComponent {
   // Ruta relativa al base-href, para que funcione en /vespino/ de GitHub Pages.
   protected readonly url: SafeResourceUrl = inject(DomSanitizer).bypassSecurityTrustResourceUrl(
-    'maqueta/index.html',
+    'sim/index.html',
   );
 }

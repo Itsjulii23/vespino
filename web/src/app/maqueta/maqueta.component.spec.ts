@@ -18,7 +18,7 @@ describe('MaquetaComponent', () => {
     const iframe = el.querySelector('iframe');
     expect(iframe).not.toBeNull();
     const src = iframe!.getAttribute('src')!;
-    expect(src.endsWith('maqueta/index.html')).toBe(true);
+    expect(src.endsWith('sim/index.html')).toBe(true);
     expect(src.startsWith('/')).toBe(false);
   });
 

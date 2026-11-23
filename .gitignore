@@ -15,6 +15,6 @@ blender/cmp_*.png
 .superpowers/
 
 # web Angular
-web/public/maqueta/
+web/public/sim/
 web/dist/
 web/.angular/

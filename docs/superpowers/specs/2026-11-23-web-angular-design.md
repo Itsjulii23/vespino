@@ -21,7 +21,7 @@ Que la maqueta 3D se abra desde una web hecha en Angular, con un clic en un enla
 
 ## Diseño
 - Proyecto Angular nuevo en `web/`, componentes standalone, router con dos rutas (`/`, `/maqueta`).
-- La maqueta (`vespino-3d.html` + `vespino-sim/` + `models/`) se copia sin modificar a `public/maqueta/` en el build.
+- La maqueta (`vespino-3d.html` (autocontenido; no usa `vespino-sim/` ni `models/`)) se copia sin modificar a `public/sim/` en el build.
 - La ruta `/maqueta` muestra un `<iframe>` a pantalla completa (DomSanitizer para la URL) y un botón "Volver".
 - Estilo en la línea del README y la maqueta (decisión mía).
 - Despliegue: GitHub Actions construye `web/` con `base-href` `/vespino/` y publica en Pages.

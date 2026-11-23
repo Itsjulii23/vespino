@@ -88,7 +88,7 @@ npm start        # servidor local
 npm test -- --watch=false
 ```
 
-El simulador no se toca: `npm start` y `npm run build` copian `vespino-3d.html` a `web/public/maqueta/`.
+El simulador no se toca: `npm start` y `npm run build` copian `vespino-3d.html` a `web/public/sim/`.
 
 ## Cómo está hecho
 

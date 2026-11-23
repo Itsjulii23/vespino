@@ -9,7 +9,7 @@
     "test": "ng test",
     "prebuild": "node scripts/copy-maqueta.mjs",
     "prestart": "node scripts/copy-maqueta.mjs",
-    "build:pages": "ng build --base-href /vespino/ && node scripts/spa-fallback.mjs"
+    "build:pages": "node scripts/copy-maqueta.mjs && ng build --base-href /vespino/ && node scripts/spa-fallback.mjs"
   },
   "private": true,
   "packageManager": "npm@12.2.0",
