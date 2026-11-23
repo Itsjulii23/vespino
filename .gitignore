@@ -12,3 +12,9 @@ referencias/
 addon.py
 *.blend1
 blender/cmp_*.png
+.superpowers/
+
+# web Angular
+web/public/maqueta/
+web/dist/
+web/.angular/
