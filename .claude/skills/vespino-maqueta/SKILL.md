@@ -5,7 +5,7 @@ description: Mantener la maqueta teardown `vespino-3d.html` y su código `vespin
 
 # Maqueta del Vespino (web)
 
-Esta carpeta es la web. El modelo se hace en la carpeta hermana `Vespino` (rama `main`, skill `vespino-blender`): allí se exporta `mortadelo.glb` directamente a `vespino-sim/` de esta carpeta.
+Esta carpeta es la web. El modelo se hace en la carpeta hermana `Vespino` (rama `modelado-3d`, skill `vespino-blender`): allí se exporta `mortadelo.glb` directamente a `vespino-sim/` de esta carpeta.
 
 ## Integración y compilación
 - Coordenadas de la maqueta: metros, x adelante, y arriba, z a la izquierda del piloto, **eje trasero en el origen**. Al exportar: X += 0,565 en una escena temporal, `export_yup=True`.

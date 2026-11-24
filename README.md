@@ -148,7 +148,7 @@ La compilación sale en `teardown-out/dist/vespino-sim.html`. El modelo va metid
 
 ## Mis skills
 
-El modelado en Blender vive en otra carpeta del proyecto (`Vespino`, rama `main`) junto con sus skills. Aquí queda la skill [vespino-maqueta](.claude/skills/vespino-maqueta/SKILL.md): cómo carga la maqueta el modelo, las cotas, los materiales, y cómo compilarla y probarla.
+El modelado en Blender vive en otra carpeta del proyecto (`Vespino`, rama `modelado-3d`) junto con sus skills. Aquí queda la skill [vespino-maqueta](.claude/skills/vespino-maqueta/SKILL.md): cómo carga la maqueta el modelo, las cotas, los materiales, y cómo compilarla y probarla.
 
 ## De dónde salen los datos
 
