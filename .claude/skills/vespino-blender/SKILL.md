@@ -1,6 +1,6 @@
 ---
 name: vespino-blender
-description: Modelar un Vespino (hoy el Mortadelo de 1968; en el futuro más modelos) en Blender con medidas oficiales y llevarlo a la maqueta teardown `vespino-3d.html`. Usar al crear, detallar o exportar cualquier pieza 3D de un Vespino, o al integrar el modelo en `vespino-sim`.
+description: Modelar un Vespino (hoy el Mortadelo de 1968; en el futuro más modelos) en Blender con medidas oficiales y llevarlo a la maqueta teardown (la web, en la carpeta hermana `Vespino-web`). Usar al crear, detallar o exportar cualquier pieza 3D de un Vespino, o al integrar el modelo en `vespino-sim`.
 ---
 
 # Vespino en Blender y en la maqueta
@@ -16,7 +16,7 @@ description: Modelar un Vespino (hoy el Mortadelo de 1968; en el futuro más mod
 exec(open(r"<repo>/skills/blender-modelo-desde-fotos/scripts/helpers.py", encoding="utf-8").read())
 exec(open(r"<repo>/blender/scripts/vespino.py", encoding="utf-8").read())
 ```
-`<repo>` es la carpeta donde está clonado el proyecto (ruta absoluta). Si la skill genérica está instalada en `~/.claude/skills/`, también vale esa copia de `helpers.py`. `vespino.py` saca `ROOT` del `.blend` abierto (`blender/mortadelo.blend`) o de la variable de entorno `VESPINO_ROOT`; no escribas rutas de tu equipo en los scripts.
+`<repo>` es la carpeta donde está clonado el proyecto (ruta absoluta). Si la skill genérica está instalada en `~/.claude/skills/`, también vale esa copia de `helpers.py`. `vespino.py` saca `ROOT` (la raíz del repositorio) del `.blend` abierto (`blender/mortadelo.blend`, tres niveles más arriba) y de ahí `MODELADO` y `MAQUETA`, o de la variable de entorno `VESPINO_ROOT`; no escribas rutas de tu equipo en los scripts.
 Da `CAL_PERFIL`, `P(px,py)`, `P3(px,py,y)`, `AX(py)` (eje de dirección), `FRONT_AXLE`, `part_ids()`, `bike_names()`, `check_parts()`, `iou(nombres)`, `iou_body()`, `prec(nombres)`, `cmp(nombres)` (escribe `blender/cmp_perfil.png`), `dims()` y `build_all()`.
 
 ## La moto es código
@@ -25,7 +25,7 @@ Cada pieza se genera desde un script en `blender/scripts/` (`mortadelo_chasis.py
 ## Reglas del proyecto
 - Blender: metros, X adelante, Y a la izquierda del piloto, Z arriba; ruedas en Z=0; centro entre ejes en X=0. Las fotos de perfil del catálogo muestran el lado derecho (-Y): ahí van tapa de correa, escape y amortiguador. El espejo va en el lado izquierdo (+Y); lo comprueba un test de la página.
 - Colecciones = `GROUPS` de `parts.js`: carroceria, direccion, ruedas, motor, transmision, otros.
-- **Nombre de objeto = id de `vespino-sim/parts.js`** (43; ruedas `rueda-t-*` y `rueda-d-*`). `check_parts()` debe devolver `[]`.
+- **Nombre de objeto = id de `Vespino-web/vespino-sim/parts.js`** (43; ruedas `rueda-t-*` y `rueda-d-*`). `check_parts()` debe devolver `[]`.
 - Origen en el punto de giro: ruedas en su eje, dirección en `AX(125)`, motor en el cigüeñal.
 - Materiales (nombres fijos, los reconoce `bike.js`): `pintura`, `pintura_interior`, `cromo`, `aluminio`, `carter`, `acero`, `goma`, `asiento`, `cristal`, `piloto`, `esfera`, `porcelana`.
 
@@ -37,17 +37,11 @@ Cada pieza se genera desde un script en `blender/scripts/` (`mortadelo_chasis.py
 - `tri_count(bike_names())` < 150.000.
 - Revisar `cmp()` con Read: nada naranja grande (sobra modelo) ni zonas blancas sin teñir (falta modelo).
 
-## Integración en la maqueta teardown (`vespino-sim`)
+## Integración en la maqueta (la web está en otra carpeta)
+- La web vive en la carpeta hermana `Vespino-web` (rama `web-angular`; o la que diga `VESPINO_WEB`). Allí está su skill `vespino-maqueta` con la carga del GLB, cotas, materiales, compilación y pruebas.
 - Coordenadas de la maqueta: metros, x adelante, y arriba, z a la izquierda del piloto, **eje trasero en el origen**. Al exportar: X += 0,565 en una escena temporal, `export_yup=True`.
-- Exportar: `exec` de `blender/scripts/export_maqueta.py` y `export_maqueta()` → `vespino-sim/mortadelo.glb` (solo `GLB_IDS`); `export_completo()` → `models/mortadelo.glb` (las 43).
-- Carga: `vespino-sim/mortadelo.js` (`import glb from './mortadelo.glb'` llega como base64), `GLTFLoader.parse` en `loadMortadelo()`; `main.js` hace `loadMortadelo().then(runLive)`. `bike.js` coloca cada pieza con `glb(id, grupo)`.
-- `GLB_IDS` vive en `vespino-sim/glb-ids.js` (27): chasis, trasera, cubierta, guardabarros-t, guardabarros-d, portabultos, sillin, piloto, deposito, horquilla, claxon, manillar, espejos, faro, velocimetro, carter, tapa-volante, filtro, carburador, cubierta-correa, escape, amortiguador, caballete, cilindro, culata, bujia, pedales.
-- Siguen en código porque se animan con la cinemática de `kin.js`: ruedas (escaladas a 0,2855 m), pistón, biela, cigüeñal, volante, motriz, conducida, muelle, correa, embrague, engranajes; y la aguja y la esfera impresa del velocímetro (la aguja fija del GLB, material `piloto`, se oculta).
-- Cotas del Mortadelo en la maqueta: `AXLE.rear [0, 0.2855]`, `AXLE.front [1.13, 0.2855]`, `CRANK [0.343, 0.287]`, `DRIVEN [0.035, 0.29]`, cilindro inclinado 12° (`CYL_TILT`: el grupo `eng` gira y las fundiciones del GLB van en un grupo con la transformación inversa). Engranajes dibujados con módulo 1 mm y el intermedio fuera de la línea, porque la polea conducida está a 35 mm del cubo. Si cambian, actualizar también las cámaras `VIEW_FN` de `live.js` y los `anchors` de `bike.js`.
-- Lados: Blender -Y (derecha del piloto, lo que se ve en las fotos) acaba en +z de la maqueta, el mismo lado que la correa del código.
-- Materiales del GLB → los de `bike.js`: pintura→GREEN, pintura_interior→GREEN2, cromo→CHROME, aluminio→ALU (CAST en carter/cilindro/culata, para que se vuelvan cristal), carter→CASE, acero→STEEL, goma→RUBBER, asiento→SEAT. En las piezas de chapa y fundición (`SHELL_PARTS`) el cromo y la goma usan copias que están en `SHELLS`, para que tornillos, rejillas y rótulos se vuelvan cristal con su pieza y no floten.
-- Compilar: `node "<ruta-de-teardown>/sims/build.mjs" ./vespino-sim` → `teardown-out/dist/vespino-sim.html` → copiar a `vespino-3d.html`.
-- Pruebas: `node --test vespino-sim/tests/glb.test.mjs` (GLB: piezas, tamaño, coordenadas, materiales) y `node --test vespino-sim/tests/page.test.mjs` (Playwright por `file://` con la red cortada: sin errores, 43 piezas con malla, color, corte, cotas; `PAGE=vespino-3d.html` para probar la copia publicada). Las capturas con Playwright y SwiftShader tardan: ventana 1280x720 y `timeout` de captura de 150 s.
+- Exportar: `exec` de `blender/scripts/export_maqueta.py`; `export_maqueta()` → `Vespino-web/vespino-sim/mortadelo.glb` (solo `GLB_IDS`, que vive en `Vespino-web/vespino-sim/glb-ids.js`); `export_completo()` → `models/mortadelo.glb` (las 43).
+- Nombres de objeto = ids de `Vespino-web/vespino-sim/parts.js`. Si cambias el GLB, compila y prueba la web desde su carpeta.
 
 ## Avisos
 - Lo estimado sobre foto se dice como estimado.

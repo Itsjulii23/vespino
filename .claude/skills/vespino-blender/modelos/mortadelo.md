@@ -30,7 +30,7 @@ Cotas estimadas sobre foto (decirlo al usuario): altura del asiento, ancho del m
 - Detalle: 85.800 triángulos; 1,734 x 0,617 x 1,043 m; `iou()` 0,784, `iou_body()` 0,846; precisión por grupo: carrocería 0,95, dirección 0,89, ruedas 0,95, motor 0,995, transmisión 1,0, otros 0,93.
 - Las piezas internas del motor y la transmisión están colocadas por cotas de la ficha y lógica mecánica, no por fotos.
 - Sin hacer: calibración frontal/cenital (se comprobó a ojo con `look`).
-- En la maqueta (`vespino-3d.html`) desde noviembre de 2026: 27 piezas del GLB (1,46 MB, 67.000 triángulos), el resto en código.
+- En la maqueta (`vespino-3d.html` de la carpeta `Vespino-web`) desde noviembre de 2026: 27 piezas del GLB (1,46 MB, 67.000 triángulos), el resto en código.
 
 ## Rasgos que lo distinguen de otras series
 - Faro redondo y piloto trasero pequeño, más alto que en series posteriores.

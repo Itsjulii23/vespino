@@ -1,10 +1,10 @@
 # Exporta el Mortadelo para la web. Requiere helpers.py + vespino.py cargados.
-#   export_maqueta()  -> vespino-sim/mortadelo.glb (solo GLB_IDS, eje trasero en el origen)
+#   export_maqueta()  -> Vespino-web/vespino-sim/mortadelo.glb (solo GLB_IDS, eje trasero en el origen)
 #   export_completo() -> models/mortadelo.glb (las 43 piezas, mismo origen)
 import re
 
 def glb_ids():
-    txt = open(ROOT + r"\vespino-sim\glb-ids.js", encoding="utf-8").read()
+    txt = open(WEB + r"\vespino-sim\glb-ids.js", encoding="utf-8").read()
     return re.findall(r"'([a-z0-9-]+)'", txt.split("[", 1)[1])
 
 def _export(names, path, dx=0.565):
@@ -23,7 +23,7 @@ def _export(names, path, dx=0.565):
     import os; return os.path.getsize(path)
 
 def export_maqueta():
-    return _export(glb_ids(), ROOT + r"\vespino-sim\mortadelo.glb")
+    return _export(glb_ids(), WEB + r"\vespino-sim\mortadelo.glb")
 
 def export_completo():
     return _export(bike_names(), ROOT + r"\models\mortadelo.glb")

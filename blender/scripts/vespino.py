@@ -2,8 +2,10 @@
 #   exec(open(r"<repo>/skills/blender-modelo-desde-fotos/scripts/helpers.py", encoding="utf-8").read())
 #   exec(open(r"<repo>/blender/scripts/vespino.py", encoding="utf-8").read())
 import re, os
-# la carpeta del proyecto: VESPINO_ROOT si está definida; si no, la de encima del .blend abierto (blender/mortadelo.blend)
+# la carpeta del proyecto: VESPINO_ROOT si está definida; si no, la de dos niveles por encima del .blend abierto (blender/mortadelo.blend)
 ROOT = os.environ.get("VESPINO_ROOT") or os.path.dirname(os.path.dirname(bpy.data.filepath))
+# la web (carpeta aparte, rama web-angular): VESPINO_WEB si está definida; si no, "Vespino-web" junto a esta carpeta
+WEB = os.environ.get("VESPINO_WEB") or os.path.join(os.path.dirname(ROOT), "Vespino-web")
 REF = ROOT + r"\referencias\mortadelo\\"
 GROUPS = ["carroceria", "direccion", "ruedas", "motor", "transmision", "otros"]
 
@@ -22,7 +24,7 @@ def mask_perfil():
     return ~((r > 0.8) & (g > 0.6) & (g < 0.92) & (b < 0.3))   # todo lo que no es el fondo amarillo
 
 def part_ids():
-    txt = open(ROOT + r"\vespino-sim\parts.js", encoding="utf-8").read()
+    txt = open(WEB + r"\vespino-sim\parts.js", encoding="utf-8").read()
     ids = set(re.findall(r"^\s*'?([a-z][a-z0-9-]*)'?: \{\s*$", txt, re.M)) - {"rel"}
     for w in ("t", "d"):
         ids |= {f"rueda-{w}-neumatico", f"rueda-{w}-llanta", f"rueda-{w}-tambor"}
