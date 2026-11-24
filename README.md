@@ -132,10 +132,7 @@ vespino-sim/        el código de la maqueta
   live.js           la interacción
   main.js           el punto de entrada
   tests/            pruebas
-blender/            el modelo de Blender (.blend) y los scripts que lo generan
-models/             modelos exportados a GLB (mortadelo.glb, las 43 piezas)
-skills/             mi skill general de modelado desde fotos
-.claude/skills/     la skill del Vespino
+.claude/skills/     la skill de la maqueta (vespino-maqueta)
 ```
 
 ### Compilarlo y probarlo
@@ -151,12 +148,7 @@ La compilación sale en `teardown-out/dist/vespino-sim.html`. El modelo va metid
 
 ## Mis skills
 
-Para todo el modelado escribí dos skills de Claude Code. Una skill es un archivo de instrucciones que Claude lee antes de ponerse con una tarea. Las dos están en este repositorio:
-
-- **[blender-modelo-desde-fotos](skills/blender-modelo-desde-fotos/SKILL.md)**: la general. Sirve para modelar en Blender cualquier objeto real a partir de fotos y medidas oficiales: calibrar las fotos, comparar la silueta con la del modelo, nombrar las piezas y exportar a GLB para la web. Puedes copiarla a `~/.claude/skills/` y usarla en tus propios proyectos.
-- **[vespino-blender](.claude/skills/vespino-blender/SKILL.md)**: la de este proyecto. Lleva las medidas del Mortadelo, los nombres de las piezas, cuándo dar una pieza por buena y cómo meter el modelo en la maqueta. Tiene una ficha por modelo en [`modelos/`](.claude/skills/vespino-blender/modelos/mortadelo.md), para cuando lleguen más Vespinos.
-
-La primera dice **cómo** modelar y la segunda **qué**. En [`skills/README.md`](skills/README.md) explico cómo instalarlas.
+El modelado en Blender vive en otra carpeta del proyecto (`Vespino`, rama `main`) junto con sus skills. Aquí queda la skill [vespino-maqueta](.claude/skills/vespino-maqueta/SKILL.md): cómo carga la maqueta el modelo, las cotas, los materiales, y cómo compilarla y probarla.
 
 ## De dónde salen los datos
 
